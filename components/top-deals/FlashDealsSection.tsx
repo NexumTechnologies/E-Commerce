@@ -8,7 +8,7 @@ export default function FlashDealsSection() {
       <div className="w-full max-w-[1240px] mx-auto px-4 flex items-center justify-between gap-2 sm:gap-4">
         {/* Left Side: Flash deals + Timer */}
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-          <span className="text-[14px] sm:text-[16px] lg:text-[20px] font-semibold leading-[20px] sm:leading-[24px] lg:leading-[28px] text-black whitespace-nowrap">
+          <span className="text-[14px] sm:text-[16px] lg:text-[20px] font-semibold leading-[20px] sm:leading-[24px] lg:leading-[28px] text-orange whitespace-nowrap">
             Flash deals
           </span>
           <div className="flex items-center gap-1 sm:gap-2 text-[12px] sm:text-[14px] lg:text-[16px] font-normal leading-[16px] sm:leading-[20px] lg:leading-[22.4px] text-black">
