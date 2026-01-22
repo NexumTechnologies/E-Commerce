@@ -1,4 +1,7 @@
 import { redirect } from "next/navigation";
+import TopDealsBanner from "@/components/top-deals/TopDealsBanner";
+import FlashDealsSection from "@/components/top-deals/FlashDealsSection";
+import TopDealsProductGrid from "@/components/top-deals/TopDealsProductGrid";
 
 export default function TopDealsPage() {
   redirect("/flash-sales");
