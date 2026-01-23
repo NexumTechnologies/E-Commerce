@@ -16,7 +16,7 @@ export default function UserDashboardLayout({
   const isOrdersPage = pathname === "/user/dashboard/orders";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/20 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-white">
       <div className="flex">
         <UserDashboardSidebar />
         <main
