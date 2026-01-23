@@ -75,7 +75,7 @@ export default function HeroSearchSection() {
                   <input
                     type="text"
                     placeholder="Search products, suppliers, or categories..."
-                    className="w-full h-14 pl-12 pr-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#7c3aed] text-gray-900"
+                    className="w-full h-14 pl-12 pr-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-orange text-gray-900"
                   />
                 </div>
                 <button className="h-14 px-8 bg-orange hover:bg-blue text-white rounded-xl font-semibold transition-colors whitespace-nowrap">

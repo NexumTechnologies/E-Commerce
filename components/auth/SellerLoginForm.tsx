@@ -48,7 +48,7 @@ export default function SellerLoginForm() {
     <div className="w-full">
       {/* Desktop Title - Hidden on mobile */}
       <div className="hidden md:block text-center">
-        <h1 className="text-[#7c3aed] text-[25px] font-bold leading-[35px]">
+        <h1 className="text-blue text-[25px] font-bold leading-[35px]">
           Sign in to TradeHub
         </h1>
         <p className="text-[#6B6B6B] text-[16px] leading-[18.2px] font-medium mt-1">
@@ -92,7 +92,7 @@ export default function SellerLoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-[#7c3aed]"
+              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
             />
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function SellerLoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-[#7c3aed]"
+              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
             />
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function SellerLoginForm() {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full h-12 bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-[16px] font-medium rounded-lg"
+          className="w-full h-12 bg-blue hover:bg-blue-light text-white text-[16px] font-medium rounded-lg"
         >
           {loading ? "Signing in..." : "SIGN IN"}
         </Button>
@@ -158,7 +158,7 @@ export default function SellerLoginForm() {
         <div className="mt-4 text-center">
           <Link
             href="/auth/forgot-password"
-            className="text-[#000000] text-[16px] hover:underline"
+            className="text-orange text-[16px] hover:underline"
           >
             Forgot Your Password?
           </Link>

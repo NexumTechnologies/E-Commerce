@@ -97,7 +97,7 @@ export default function SellerRegisterStep3() {
     <div className="w-full">
       {/* Desktop Title - Hidden on mobile */}
       <div className="hidden md:block text-center">
-        <h1 className="text-[#7c3aed] text-[25px] font-bold leading-[35px]">
+        <h1 className="text-blue text-[25px] font-bold leading-[35px]">
           Verify Your Business
         </h1>
         <p className="text-[#6B6B6B] text-[16px] leading-[18.2px] font-medium mt-1">
@@ -118,7 +118,7 @@ export default function SellerRegisterStep3() {
           <div className="w-full border border-[#A6A6A6] bg-transparent rounded-lg py-[25px] px-[35px]">
             <label
               htmlFor="businessLicense"
-              className="block w-full bg-[#7c3aed] rounded-lg py-3 px-4 cursor-pointer hover:bg-[#6d28d9] transition-colors"
+              className="block w-full bg-blue rounded-lg py-3 px-4 cursor-pointer hover:bg-blue transition-colors"
               onClick={() =>
                 document.getElementById("businessLicense")?.click()
               }
@@ -182,7 +182,7 @@ export default function SellerRegisterStep3() {
           <div className="w-full border border-[#A6A6A6] bg-transparent rounded-lg py-[25px] px-[35px]">
             <label
               htmlFor="taxCertificate"
-              className="block w-full bg-[#7c3aed] rounded-lg py-3 px-4 cursor-pointer hover:bg-[#6d28d9] transition-colors"
+              className="block w-full bg-blue rounded-lg py-3 px-4 cursor-pointer hover:bg-blue transition-colors"
               onClick={() => document.getElementById("taxCertificate")?.click()}
             >
               <div className="flex items-center justify-center gap-3">
@@ -244,7 +244,7 @@ export default function SellerRegisterStep3() {
           <div className="w-full border border-[#A6A6A6] bg-transparent rounded-lg py-[25px] px-[35px]">
             <label
               htmlFor="factoryPhoto"
-              className="block w-full bg-[#7c3aed] rounded-lg py-3 px-4 cursor-pointer hover:bg-[#6d28d9] transition-colors"
+              className="block w-full bg-blue rounded-lg py-3 px-4 cursor-pointer hover:bg-blue transition-colors"
               onClick={() => document.getElementById("factoryPhoto")?.click()}
             >
               <div className="flex items-center justify-center gap-3">
@@ -301,7 +301,7 @@ export default function SellerRegisterStep3() {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full h-12 bg-[#7c3aed] hover:bg-[#5b21b6] text-white text-[16px] font-medium rounded-lg"
+          className="w-full h-12 bg-gradient-to-br from-blue to-blue-300 text-white text-[16px] font-medium rounded-lg"
         >
           {loading ? "Submitting..." : "Submit Application"}
         </Button>

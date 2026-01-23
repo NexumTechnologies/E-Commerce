@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function SignUpPromo() {
   return (
-    <div className="h-full bg-blue flex flex-col items-center justify-center px-8 py-16">
+    <div className="h-full bg-gradient-to-br from-blue-light to-blue flex flex-col items-center justify-center px-8 py-16">
       <h2 className="text-white text-[25px] font-bold leading-[35px] text-center">
         Welcome to your TradeHub buyer
       </h2>

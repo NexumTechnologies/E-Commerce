@@ -37,7 +37,7 @@ export default function SellerRegisterStep1() {
     <div className="w-full">
       {/* Desktop Title - Hidden on mobile */}
       <div className="hidden md:block text-center">
-        <h1 className="text-[#7c3aed] text-[25px] font-bold leading-[35px]">
+        <h1 className="text-blue text-[25px] font-bold leading-[35px]">
           Create Your Seller Account
         </h1>
         <p className="text-[#6B6B6B] text-[16px] leading-[18.2px] font-medium mt-1">
@@ -56,6 +56,7 @@ export default function SellerRegisterStep1() {
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
+                className="text-blue"
               >
                 <path
                   d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
@@ -79,7 +80,7 @@ export default function SellerRegisterStep1() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-[#7c3aed]"
+              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
             />
           </div>
         </div>
@@ -119,7 +120,7 @@ export default function SellerRegisterStep1() {
               value={workEmail}
               onChange={(e) => setWorkEmail(e.target.value)}
               required
-              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-[#7c3aed]"
+              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
             />
           </div>
         </div>
@@ -157,7 +158,7 @@ export default function SellerRegisterStep1() {
               value={mobileNumber}
               onChange={(e) => setMobileNumber(e.target.value)}
               required
-              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-[#7c3aed]"
+              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
             />
           </div>
         </div>
@@ -168,7 +169,7 @@ export default function SellerRegisterStep1() {
         {/* Next Button */}
         <Button
           type="submit"
-          className="w-full h-12 bg-[#7c3aed] hover:bg-[#5b21b6] text-white text-[16px] font-medium rounded-lg"
+          className="w-full h-12 bg-blue hover:bg-blue-light text-white text-[16px] font-medium rounded-lg"
         >
           Next
         </Button>

@@ -65,7 +65,7 @@ export default function SellerRegisterStep2() {
     <div className="w-full">
       {/* Desktop Title - Hidden on mobile */}
       <div className="hidden md:block text-center">
-        <h1 className="text-[#7c3aed] text-[25px] font-bold leading-[35px]">
+        <h1 className="text-blue text-[25px] font-bold leading-[35px]">
           Tell Us About Your Company
         </h1>
         <p className="text-[#6B6B6B] text-[16px] leading-[18.2px] font-medium mt-1">
@@ -82,7 +82,7 @@ export default function SellerRegisterStep2() {
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
             required
-            className="h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-[#7c3aed]"
+            className="h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
           />
         </div>
 
@@ -93,7 +93,7 @@ export default function SellerRegisterStep2() {
               value={country}
               onChange={(e) => setCountry(e.target.value)}
               required
-              className="h-12 w-full border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal bg-transparent focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-[#7c3aed] focus:outline-none pr-10 appearance-none cursor-pointer"
+              className="h-12 w-full border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal bg-transparent focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue focus:outline-none pr-10 appearance-none cursor-pointer"
               style={{
                 color: country ? "#000000" : "#6B6B6B",
               }}
@@ -170,7 +170,7 @@ export default function SellerRegisterStep2() {
             value={city}
             onChange={(e) => setCity(e.target.value)}
             required
-            className="h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-[#7c3aed]"
+            className="h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
           />
         </div>
 
@@ -181,7 +181,7 @@ export default function SellerRegisterStep2() {
               value={businessType}
               onChange={(e) => setBusinessType(e.target.value)}
               required
-              className="h-12 w-full border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal bg-transparent focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-[#7c3aed] focus:outline-none pr-10 appearance-none cursor-pointer"
+              className="h-12 w-full border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal bg-transparent focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue focus:outline-none pr-10 appearance-none cursor-pointer"
               style={{
                 color: businessType ? "#000000" : "#6B6B6B",
               }}
@@ -225,7 +225,7 @@ export default function SellerRegisterStep2() {
             value={businessProductCategories}
             onChange={(e) => setBusinessProductCategories(e.target.value)}
             required
-            className="h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-[#7c3aed]"
+            className="h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
           />
         </div>
 
@@ -235,7 +235,7 @@ export default function SellerRegisterStep2() {
         {/* Next Button */}
         <Button
           type="submit"
-          className="w-full h-12 bg-[#7c3aed] hover:bg-[#5b21b6] text-white text-[16px] font-medium rounded-lg"
+          className="w-full h-12 bg-gradient-to-r from-blue to-blue-300  text-white text-[16px] font-medium rounded-lg"
         >
           Next
         </Button>
