@@ -155,7 +155,7 @@ export default function TopDealsSection() {
 
                         {/* Product Image Container */}
                         <div className="relative w-full h-[200px] sm:h-[220px] lg:h-[240px] bg-gradient-to-br from-gray-50 to-blue-50/50 overflow-hidden">
-                          <div className="absolute inset-0 bg-white/60 group-hover:bg-white/30 transition-colors duration-300 z-10" />
+                          <div className="absolute inset-0  transition-colors duration-300 z-10" />
                           <Image
                             src={product.image}
                             alt={`Product ${product.id}`}

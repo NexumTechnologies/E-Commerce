@@ -224,7 +224,7 @@ export default function CategoriesSection() {
                     <div className="relative z-10 p-6 lg:p-8">
                       {/* Image Container */}
                       <div className="relative w-full h-56 lg:h-64 mb-6 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50 group-hover:from-purple-50 group-hover:to-blue-100 transition-all duration-500 shadow-inner">
-                        <div className="absolute inset-0 bg-white/50 group-hover:bg-white/30 transition-colors duration-500 z-10" />
+                        <div className="absolute inset-0  transition-colors duration-500 z-10" />
                         <Image
                           src={search.image}
                           alt={search.term}
