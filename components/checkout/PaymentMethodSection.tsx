@@ -35,7 +35,7 @@ export default function PaymentMethodSection({
         <div
           className={`w-8 h-8 rounded-full flex items-center justify-center ${
             isComplete
-              ? "bg-[#7c3aed] text-white"
+              ? "bg-orange text-white"
               : isActive && !disabled
               ? "bg-[#7c3aed] text-white"
               : "bg-gray-200 text-gray-500"
@@ -49,7 +49,7 @@ export default function PaymentMethodSection({
             variant="ghost"
             size="sm"
             onClick={onActivate}
-            className="ml-auto text-[#7c3aed]"
+            className="ml-auto text-orange"
             disabled={disabled}
           >
             Change
@@ -63,38 +63,38 @@ export default function PaymentMethodSection({
         </p>
       ) : (
         <div className="space-y-3">
-          <label className="flex items-center gap-3 p-4 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-[#7c3aed]">
+          <label className="flex items-center gap-3 p-4 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-orange">
             <input
               type="radio"
               name="paymentMethod"
               value="newCard"
               checked={selectedMethod === "newCard"}
               onChange={() => handleMethodSelect("newCard")}
-              className="w-4 h-4 text-[#7c3aed]"
+              className="w-4 h-4 text-orange"
             />
             <span className="text-sm font-medium text-[#000000]">
               Add a new card
             </span>
           </label>
-          <label className="flex items-center gap-3 p-4 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-[#7c3aed]">
+          <label className="flex items-center gap-3 p-4 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-orange">
             <input
               type="radio"
               name="paymentMethod"
               value="instapay"
               checked={selectedMethod === "instapay"}
               onChange={() => handleMethodSelect("instapay")}
-              className="w-4 h-4 text-[#7c3aed]"
+              className="w-4 h-4 text-orange"
             />
             <span className="text-sm font-medium text-[#000000]">InstaPay</span>
           </label>
-          <label className="flex items-center gap-3 p-4 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-[#7c3aed]">
+          <label className="flex items-center gap-3 p-4 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-orange">
             <input
               type="radio"
               name="paymentMethod"
               value="applePay"
               checked={selectedMethod === "applePay"}
               onChange={() => handleMethodSelect("applePay")}
-              className="w-4 h-4 text-[#7c3aed]"
+              className="w-4 h-4 text-orange"
             />
             <span className="text-sm font-medium text-[#000000]">
               Apple Pay

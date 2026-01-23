@@ -51,7 +51,7 @@ export default function ItemsAndDeliverySection({
       <div className="flex items-center gap-3 mb-6">
         <div
           className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            isActive ? "bg-[#7c3aed] text-white" : "bg-gray-200 text-gray-500"
+            isActive ? "bg-orange text-white" : "bg-gray-200 text-gray-500"
           }`}
         >
           <Package className="w-4 h-4" />
@@ -84,7 +84,7 @@ export default function ItemsAndDeliverySection({
                 variant="ghost"
                 size="sm"
                 onClick={onActivate}
-                className="text-[#7c3aed]"
+                className="text-orange"
               >
                 Change
               </Button>
@@ -107,7 +107,7 @@ export default function ItemsAndDeliverySection({
                   className="object-cover"
                 />
                 {item.id === "item1" && (
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#7c3aed] rounded-full flex items-center justify-center">
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-orange rounded-full flex items-center justify-center">
                     <span className="text-xs text-white font-medium">
                       {quantities[item.id as keyof typeof quantities]}
                     </span>
@@ -130,7 +130,7 @@ export default function ItemsAndDeliverySection({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleQuantityChange(item.id, -1)}
-                      className="w-8 h-8 border-2 border-[#E0E0E0] rounded-lg flex items-center justify-center hover:border-[#7c3aed]"
+                      className="w-8 h-8 border-2 border-[#E0E0E0] rounded-lg flex items-center justify-center hover:border-orange"
                     >
                       <span className="text-[#6B6B6B]">-</span>
                     </button>
@@ -139,7 +139,7 @@ export default function ItemsAndDeliverySection({
                     </span>
                     <button
                       onClick={() => handleQuantityChange(item.id, 1)}
-                      className="w-8 h-8 border-2 border-[#E0E0E0] rounded-lg flex items-center justify-center hover:border-[#7c3aed]"
+                      className="w-8 h-8 border-2 border-[#E0E0E0] rounded-lg flex items-center justify-center hover:border-orange"
                     >
                       <span className="text-[#6B6B6B]">+</span>
                     </button>
@@ -159,7 +159,7 @@ export default function ItemsAndDeliverySection({
             Add note to supplier
           </label>
           <textarea
-            className="w-full h-24 px-4 py-3 border-2 border-[#E0E0E0] rounded-lg focus:outline-none focus:border-[#7c3aed] resize-none"
+            className="w-full h-24 px-4 py-3 border-2 border-[#E0E0E0] rounded-lg focus:outline-none focus:border-orange resize-none"
             placeholder="Enter your message..."
           />
         </div>

@@ -25,7 +25,7 @@ export default function OrderSummary() {
             fill
             className="object-cover rounded-lg"
           />
-          <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#7c3aed] rounded-full flex items-center justify-center">
+          <div className="absolute -top-1 -right-1 w-6 h-6 bg-orange rounded-full flex items-center justify-center">
             <span className="text-xs text-white font-medium">2</span>
           </div>
         </div>
@@ -70,9 +70,7 @@ export default function OrderSummary() {
 
         {/* Pay Now Button */}
         <button
-          className="w-full h-12 rounded-lg text-white font-medium text-base"
-          style={{ backgroundColor: "#7c3aed" }}
-        >
+          className="w-full h-12 rounded-lg text-white font-medium text-base bg-gradient-to-r from-orange to-orange-300" >
           Pay now
         </button>
       </div>
