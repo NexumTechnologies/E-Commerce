@@ -1,10 +1,13 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
-
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined in environment variables");
+// We don't validate at module level to avoid build failures during static analysis.
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined in environment variables");
+  }
+  return secret;
 }
 
 export interface AuthUser {
@@ -20,7 +23,8 @@ export async function getTokenFromCookies(): Promise<string | null> {
 
 export function verifyAuthToken(token: string): AuthUser | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
+    const secret = getJwtSecret();
+    const decoded = jwt.verify(token, secret) as AuthUser;
     return {
       id: decoded.id,
       role: decoded.role,
