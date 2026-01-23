@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Star
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 interface Category {
   id: string;
@@ -31,7 +32,29 @@ const categories: Category[] = [
 ];
 
 export default function BrowseSidebar() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const categoryParam = searchParams.get("category");
+  
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam);
+
+  useEffect(() => {
+    setSelectedCategory(categoryParam);
+  }, [categoryParam]);
+
+  const handleCategoryClick = (id: string) => {
+    const newId = selectedCategory === id ? null : id;
+    setSelectedCategory(newId);
+    
+    // Update URL query params
+    const params = new URLSearchParams(searchParams.toString());
+    if (newId) {
+      params.set("category", newId);
+    } else {
+      params.delete("category");
+    }
+    router.push(`/browse?${params.toString()}`);
+  };
 
   return (
     <aside className="w-full lg:w-72 space-y-8">
@@ -46,7 +69,7 @@ export default function BrowseSidebar() {
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
+              onClick={() => handleCategoryClick(category.id)}
               className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${
                 selectedCategory === category.id 
                   ? "bg-blue text-white shadow-lg shadow-blue/20" 
@@ -64,6 +87,7 @@ export default function BrowseSidebar() {
           ))}
         </nav>
       </div>
+
 
       {/* Price Range */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">

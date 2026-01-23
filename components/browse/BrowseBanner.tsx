@@ -9,7 +9,7 @@ interface BrowseBannerProps {
 
 export default function BrowseBanner({ categoryName = "All Products", totalProducts = 12500 }: BrowseBannerProps) {
   return (
-    <section className="w-full bg-gradient-to-r from-blue to-purple-600 py-12 lg:py-16 text-white overflow-hidden relative">
+    <section className="w-full bg-gradient-to-r from-blue-light to-blue py-12 lg:py-16 text-white overflow-hidden relative">
       <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-96 h-96 bg-orange/20 rounded-full blur-3xl" />
       

@@ -197,7 +197,7 @@ export default function CategoriesSection() {
               {trendingSearches.map((search, index) => (
                 <Link
                   key={search.id}
-                  href={`/browse?q=${encodeURIComponent(search.term)}`}
+                  href={`/products/${search.id}`}
                   className="group relative"
                 >
                   {/* Card Container */}
