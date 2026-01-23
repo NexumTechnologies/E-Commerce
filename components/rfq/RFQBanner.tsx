@@ -7,7 +7,7 @@ export default function RFQBanner() {
     <section
       className="w-full h-[133px] lg:h-[316px] flex flex-col items-center justify-center relative"
       style={{
-        background: "linear-gradient(180deg, #6b21a8 0%, #8b5cf6 69%)",
+        background: "linear-gradient(180deg, blue 0%, blue 69%)",
       }}
     >
       <div className="w-full max-w-[1240px] mx-auto px-4 flex flex-col lg:flex-row items-start lg:items-start justify-between relative h-full pt-[62px] lg:pt-[34px]">

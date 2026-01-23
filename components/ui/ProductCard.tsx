@@ -47,7 +47,7 @@ export default function ProductCard({
       href={`/products/${id}`}
       className={`group relative ${className}`}
     >
-      <div className="relative h-full bg-white rounded-2xl overflow-hidden border-2 border-gray-100 hover:border-[#7c3aed] transition-all duration-300 shadow-md hover:shadow-2xl group-hover:scale-[1.02]">
+      <div className="relative h-full bg-white rounded-2xl overflow-hidden border-2 border-gray-100 hover:border-blue transition-all duration-300 shadow-md hover:shadow-2xl group-hover:scale-[1.02]">
         {/* Discount Badge */}
         {discount && (
           <div className="absolute top-3 left-3 z-20">
@@ -75,7 +75,7 @@ export default function ProductCard({
         )}
 
         {/* Product Image Container */}
-        <div className="relative w-full h-[180px] sm:h-[200px] lg:h-[240px] bg-gradient-to-br from-gray-50 to-purple-50/30 overflow-hidden">
+        <div className="relative w-full h-[180px] sm:h-[200px] lg:h-[240px] bg-gradient-to-br from-gray-50 to-blue-50/30 overflow-hidden">
           <div className="absolute inset-0 bg-white/60 group-hover:bg-white/30 transition-colors duration-300 z-10" />
           <Image
             src={image}
@@ -89,7 +89,7 @@ export default function ProductCard({
         <div className="p-4 sm:p-5 space-y-3">
           {/* Product Name and Rating */}
           <div className="space-y-2">
-            <h3 className="font-bold text-sm sm:text-base text-gray-900 group-hover:text-[#7c3aed] transition-colors line-clamp-2 min-h-[2.5rem]">
+            <h3 className="font-bold text-sm sm:text-base text-gray-900 group-hover:text-blue transition-colors line-clamp-2 min-h-[2.5rem]">
               {name}
             </h3>
             {rating && (
@@ -112,7 +112,7 @@ export default function ProductCard({
           {/* Pricing */}
           <div className="space-y-1 pt-2 border-t border-gray-100">
             <div className="flex items-baseline gap-2">
-              <span className="font-bold text-lg sm:text-xl text-[#7c3aed]">
+              <span className="font-bold text-lg sm:text-xl text-blue">
                 {discountPrice}
               </span>
               {cutPrice && cutPrice !== discountPrice && (
@@ -136,7 +136,7 @@ export default function ProductCard({
                   e.preventDefault();
                   e.stopPropagation();
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#7c3aed] to-[#a78bfa] text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue to-blue-300 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
               >
                 <ShoppingCart className="h-4 w-4" />
                 <span>Add to Cart</span>
@@ -146,7 +146,7 @@ export default function ProductCard({
         </div>
 
         {/* Hover Overlay Effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-purple-500/5 group-hover:to-purple-500/10 transition-all duration-300 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/0 group-hover:from-blue-500/5 group-hover:to-blue-500/10 transition-all duration-300 pointer-events-none" />
       </div>
     </Link>
   );

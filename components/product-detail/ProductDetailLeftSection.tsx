@@ -55,13 +55,13 @@ export default function ProductDetailLeftSection() {
   return (
     <div className="w-full max-w-[717px]">
       {/* Desktop: Header with Back Icon and Product Title */}
-      <div className="hidden lg:block bg-white rounded-2xl py-6 px-6 mb-6 shadow-xl border border-purple-100/50">
+      <div className="hidden lg:block bg-white rounded-2xl py-6 px-6 mb-6 shadow-xl border border-blue-100/50">
         <div className="flex items-center gap-4">
           <Link
             href="/"
             className="p-2 rounded-lg hover:bg-purple-50 transition-colors group"
           >
-            <ArrowLeft className="w-5 h-5 text-[#7c3aed] group-hover:text-[#6d28d9] transition-colors" />
+            <ArrowLeft className="w-5 h-5 text-blue group-hover:text-blue transition-colors" />
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">
             {productTitle}
@@ -70,7 +70,7 @@ export default function ProductDetailLeftSection() {
       </div>
 
       {/* Mobile: Single Carousel */}
-      <div className="lg:hidden relative w-full h-[510px] bg-white rounded-2xl overflow-hidden mb-4 shadow-xl border border-purple-100/50">
+      <div className="lg:hidden relative w-full h-[510px] bg-white rounded-2xl overflow-hidden mb-4 shadow-xl border border-blue-100/50">
         <Image
           src={productImages[selectedImage]}
           alt="Product image"
@@ -82,7 +82,7 @@ export default function ProductDetailLeftSection() {
           href="/"
           className="absolute top-4 left-4 z-20 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all"
         >
-          <ArrowLeft className="w-5 h-5 text-[#7c3aed]" />
+          <ArrowLeft className="w-5 h-5 text-blue" />
         </Link>
         {/* Left Arrow */}
         <button
@@ -117,7 +117,7 @@ export default function ProductDetailLeftSection() {
               onClick={() => setSelectedImage(index)}
               className={`h-2 rounded-full transition-all ${
                 selectedImage === index
-                  ? "w-8 bg-gradient-to-r from-[#7c3aed] to-[#a78bfa]"
+                  ? "w-8 bg-gradient-to-r from-blue to-blue-300"
                   : "w-2 bg-white/50 hover:bg-white/75"
               }`}
             />
@@ -145,7 +145,7 @@ export default function ProductDetailLeftSection() {
               className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-8 bg-white hover:bg-purple-50 rounded-full flex items-center justify-center z-30 shadow-lg border border-purple-100 transition-all"
               aria-label="Scroll thumbnails up"
             >
-              <ChevronUp className="w-4 h-4 text-[#7c3aed]" />
+              <ChevronUp className="w-4 h-4 text-blue" />
             </button>
           )}
 
@@ -164,7 +164,7 @@ export default function ProductDetailLeftSection() {
                 onClick={() => setSelectedImage(index)}
                 className={`relative rounded-xl shrink-0 bg-white transition-all ${
                   selectedImage === index
-                    ? "ring-2 ring-[#7c3aed] shadow-lg scale-105"
+                    ? "ring-2 ring-blue shadow-lg scale-105"
                     : "shadow-md hover:shadow-lg"
                 }`}
                 style={{
@@ -195,7 +195,7 @@ export default function ProductDetailLeftSection() {
               className="absolute bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 bg-white hover:bg-purple-50 rounded-full flex items-center justify-center z-30 shadow-lg border border-purple-100 transition-all"
               aria-label="Scroll thumbnails down"
             >
-              <ChevronDown className="w-4 h-4 text-[#7c3aed]" />
+              <ChevronDown className="w-4 h-4 text-blue" />
             </button>
           )}
         </div>

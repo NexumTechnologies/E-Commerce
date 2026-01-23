@@ -83,7 +83,7 @@ export default function BrowsedProductsSection() {
     <section className="w-full bg-gradient-to-b from-gray-50 via-purple-50/20 to-white py-12 sm:py-16 lg:py-20">
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Title */}
-        <h2 className="text-2xl sm:text-3xl font-bold text-[#7c3aed] mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-orange mb-8">
           Get Multiple Quotes for Products You Have Browsed
         </h2>
 
@@ -101,7 +101,7 @@ export default function BrowsedProductsSection() {
                 showFavorite={false}
                 showAddToCart={false}
               />
-              <button className="absolute bottom-4 left-4 right-4 px-4 py-2 bg-gradient-to-r from-[#7c3aed] to-[#a78bfa] text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-30">
+              <button className="absolute bottom-4 left-4 right-4 px-4 py-2 bg-gradient-to-r from-blue to-blue-400 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-30">
                 Get Quotes Now
               </button>
             </div>

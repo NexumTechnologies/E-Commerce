@@ -42,7 +42,7 @@ export default function WholesalePanel({
               className="text-center p-4 rounded-xl bg-gradient-to-br from-purple-50/50 to-transparent border border-purple-100/50 hover:border-purple-200 transition-all"
             >
               <p className="text-xs text-gray-600 mb-2">{tier.range} pieces</p>
-              <p className="text-lg font-bold text-[#7c3aed]">{tier.price}</p>
+              <p className="text-lg font-bold text-orange">{tier.price}</p>
             </div>
           ))}
         </div>
@@ -55,7 +55,7 @@ export default function WholesalePanel({
       <div className="lg:mb-6 mb-4">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-base font-semibold text-gray-900">Variations</h3>
-          <button className="text-sm font-medium text-[#7c3aed] hover:text-[#6d28d9] transition-colors flex items-center gap-1">
+          <button className="text-sm font-medium text-orange hover:text-blue transition-colors flex items-center gap-1">
             Select now
             <ArrowRight className="w-4 h-4" />
           </button>
@@ -68,8 +68,8 @@ export default function WholesalePanel({
               onClick={() => onColorChange(color.id)}
               className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
                 selectedColor === color.id
-                  ? "border-[#7c3aed] ring-2 ring-purple-200 shadow-lg scale-105"
-                  : "border-gray-200 hover:border-purple-300"
+                  ? "border-orange ring-2 ring-orange shadow-lg scale-105"
+                  : "border-gray-200 hover:border-orange"
               }`}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-purple-50/30" />
@@ -80,7 +80,7 @@ export default function WholesalePanel({
                 className="object-cover p-2"
               />
               {selectedColor === color.id && (
-                <div className="absolute inset-0 bg-purple-500/10" />
+                <div className="absolute inset-0 bg-orange/10" />
               )}
             </button>
           ))}
@@ -94,7 +94,7 @@ export default function WholesalePanel({
       <div className="mb-6 space-y-3">
         <button
           onClick={onStartOrder}
-          className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#a78bfa] text-white font-semibold hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2"
+          className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-orange to-orange-300 text-white font-semibold hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2"
         >
           <ShoppingCart className="w-5 h-5" />
           Start Order
@@ -102,13 +102,13 @@ export default function WholesalePanel({
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={onAddToCart}
-            className="py-3 px-4 rounded-xl font-semibold border-2 border-[#7c3aed] text-[#7c3aed] hover:bg-purple-50 transition-all duration-300"
+            className="py-3 px-4 rounded-xl font-semibold border-2 border-orange text-orange hover:bg-orange-50 transition-all duration-300"
           >
             Add to Cart
           </button>
           <button
             onClick={onChatNow}
-            className="py-3 px-4 rounded-xl font-semibold border-2 border-[#7c3aed] text-[#7c3aed] hover:bg-purple-50 transition-all duration-300 flex items-center justify-center gap-2"
+            className="py-3 px-4 rounded-xl font-semibold border-2 border-orange text-orange hover:bg-orange-50 transition-all duration-300 flex items-center justify-center gap-2"
           >
             <MessageCircle className="w-4 h-4" />
             Chat Now

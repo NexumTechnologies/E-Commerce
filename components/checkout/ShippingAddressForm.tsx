@@ -53,9 +53,9 @@ export default function ShippingAddressForm({
         <div
           className={`w-8 h-8 rounded-full flex items-center justify-center ${
             isComplete
-              ? "bg-[#7c3aed] text-white"
+              ? "bg-orange text-white"
               : isActive
-              ? "bg-[#7c3aed] text-white"
+              ? "bg-blue text-white"
               : "bg-gray-200 text-gray-500"
           }`}
         >
@@ -87,7 +87,7 @@ export default function ShippingAddressForm({
             variant="ghost"
             size="sm"
             onClick={onActivate}
-            className="ml-auto text-[#7c3aed]"
+            className="ml-auto text-blue"
           >
             Change
           </Button>
@@ -112,7 +112,7 @@ export default function ShippingAddressForm({
                 name="country"
                 value={formData.country}
                 onChange={handleChange}
-                className="w-full h-12 px-4 border-2 border-[#E0E0E0] rounded-lg focus:outline-none focus:border-[#7c3aed] appearance-none bg-white"
+                className="w-full h-12 px-4 border-2 border-[#E0E0E0] rounded-lg focus:outline-none focus:border-orange appearance-none bg-white"
               >
                 <option value="Egypt">Egypt</option>
                 <option value="United States">United States</option>
@@ -244,7 +244,7 @@ export default function ShippingAddressForm({
               Shipping Method
             </h3>
             <div className="space-y-3">
-              <label className="flex items-center gap-3 p-3 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-[#7c3aed]">
+              <label className="flex items-center gap-3 p-3 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-orange">
                 <input
                   type="radio"
                   name="shippingMethod"
@@ -258,7 +258,7 @@ export default function ShippingAddressForm({
                   </p>
                 </div>
               </label>
-              <label className="flex items-center gap-3 p-3 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-[#7c3aed]">
+              <label className="flex items-center gap-3 p-3 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-orange">
                 <input
                   type="radio"
                   name="shippingMethod"
@@ -271,12 +271,12 @@ export default function ShippingAddressForm({
                   </p>
                 </div>
               </label>
-              <label className="flex items-center gap-3 p-3 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-[#7c3aed]">
+              <label className="flex items-center gap-3 p-3 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-orange">
                 <input
                   type="radio"
                   name="shippingMethod"
                   value="economy"
-                  className="w-4 h-4 text-[#7c3aed]"
+                  className="w-4 h-4 text-orange"
                 />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-[#000000]">
@@ -288,13 +288,12 @@ export default function ShippingAddressForm({
           </div>
 
           {/* Continue to payment button */}
-          <Button
+          <button
             type="submit"
-            className="w-full h-12 text-base font-medium"
-            style={{ backgroundColor: "#7c3aed" }}
+            className="w-full h-12 text-base font-medium bg-gradient-to-r from-orange to-orange-300 rounded-lg text-white"
           >
             Continue to payment
-          </Button>
+          </button>
         </form>
       )}
     </div>

@@ -60,7 +60,7 @@ export default function FrequentlyBoughtTogetherSection() {
   return (
     <div className="w-full mt-8">
       {/* Title */}
-      <h2 className="text-2xl font-bold mb-6 text-[#7c3aed]">
+      <h2 className="text-2xl font-bold mb-6 text-orange">
         Frequently Bought Together
       </h2>
 

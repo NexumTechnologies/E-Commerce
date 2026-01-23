@@ -4,14 +4,14 @@ export default function RFQFormCard() {
   return (
     <div className="w-full max-w-[1240px] mx-auto px-4 mt-4 lg:-mt-[70px] relative z-10 mb-8 flex justify-center">
       <div className="bg-[#F5FBFF] rounded-[10px] md:p-4 shadow-lg flex flex-col w-full lg:w-[1030px] h-auto lg:h-[360px]">
-        <h2 className="text-[20px] font-bold leading-[28px] text-[#7c3aed] mb-4">
+        <h2 className="text-[20px] font-bold leading-[28px] text-orange mb-4">
           Tell us what you need
         </h2>
 
         {/* Border container with upload area */}
         <div className="border border-[#A6A6A6] rounded-lg flex flex-col items-center justify-center flex-1 mb-4 py-6 px-4 lg:p-0">
           {/* Upload File Button */}
-          <button className="flex items-center gap-2 bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-lg transition-colors py-2 px-4 lg:px-6 lg:py-3">
+          <button className="flex items-center gap-2 bg-orange/90 hover:bg-orange text-white rounded-lg transition-colors py-2 px-4 lg:px-6 lg:py-3">
             <svg
               width="24"
               height="24"
@@ -60,7 +60,7 @@ export default function RFQFormCard() {
 
         {/* Write RFQ Details Button - 16px below border */}
         <div className="flex justify-center">
-          <button className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-6 py-3 rounded-lg transition-colors">
+          <button className="bg-orange/90 hover:bg-orange text-white px-6 py-3 rounded-lg transition-colors">
             Write Order Details
           </button>
         </div>

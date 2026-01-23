@@ -54,8 +54,8 @@ export default function PurchaseTabs({
         onKeyDown={(e) => handleKeyDown(e, "wholesale")}
         className={`flex-1 py-3 px-4 rounded-lg text-base font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed] focus-visible:ring-offset-2 ${
           activeTab === "wholesale"
-            ? "text-white bg-gradient-to-r from-[#7c3aed] to-[#a78bfa] shadow-lg"
-            : "text-gray-600 hover:text-[#7c3aed]"
+            ? "text-white bg-gradient-to-r from-orange to-orange-300 shadow-lg"
+            : "text-gray-600 hover:text-orange"
         }`}
       >
         Wholesale
@@ -73,8 +73,8 @@ export default function PurchaseTabs({
           !customizationEnabled
             ? "text-gray-400 cursor-not-allowed"
             : activeTab === "customization"
-            ? "text-white bg-gradient-to-r from-[#7c3aed] to-[#a78bfa] shadow-lg"
-            : "text-gray-600 hover:text-[#7c3aed]"
+            ? "text-white bg-gradient-to-r from-orange to-orange-300 shadow-lg"
+            : "text-gray-600 hover:text-orange"
         }`}
         title={
           !customizationEnabled ? "Customization not available" : undefined

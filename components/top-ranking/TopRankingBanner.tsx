@@ -7,7 +7,7 @@ export default function TopRankingBanner() {
     <section
       className="w-full h-[60px] sm:h-[80px] lg:h-[142px] flex items-center justify-center relative"
       style={{
-        background: "linear-gradient(180deg, #6b21a8 0%, #8b5cf6 69%)",
+        background: "linear-gradient(180deg, blue 0%, blue 69%)",
       }}
     >
       <div className="w-full max-w-[1240px] mx-auto px-4 flex items-center justify-between relative">

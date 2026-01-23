@@ -100,7 +100,7 @@ export default function SuppliersPopularProductsSection() {
   return (
     <div className="w-full mt-8">
       {/* Title */}
-      <h2 className="text-2xl font-bold mb-6 text-[#7c3aed]">
+      <h2 className="text-2xl font-bold mb-6 text-orange">
         Supplier&apos;s Popular Products
       </h2>
 

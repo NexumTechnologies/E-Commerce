@@ -17,14 +17,14 @@ export default function ProtectionsSection() {
       {/* Protection Cards */}
       <div className="space-y-4">
         {/* Delivery */}
-        <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50/50 to-transparent border border-purple-100/50 hover:border-purple-200 transition-all">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-orange-50/50 to-transparent border border-orange-100/50 hover:border-orange-200 transition-all">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange to-orange-300 flex items-center justify-center shrink-0">
               <Truck className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-900 mb-1">
-                Delivery via <span className="text-[#7c3aed]">TradeHub</span> logistics
+                Delivery via <span className="text-orange">TradeHub</span> logistics
               </p>
               <p className="text-xs text-gray-600 leading-relaxed">
                 Expect your order to be delivered before scheduled dates or
@@ -35,9 +35,9 @@ export default function ProtectionsSection() {
         </div>
 
         {/* Secure Payments */}
-        <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50/50 to-transparent border border-purple-100/50 hover:border-purple-200 transition-all">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-orange-50/50 to-transparent border border-orange-100/50 hover:border-orange-200 transition-all">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange to-orange-300 flex items-center justify-center shrink-0">
               <CreditCard className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
@@ -53,9 +53,9 @@ export default function ProtectionsSection() {
         </div>
 
         {/* Standard Refund Policy */}
-        <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50/50 to-transparent border border-purple-100/50 hover:border-purple-200 transition-all">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-orange-50/50 to-transparent border border-orange-100/50 hover:border-orange-200 transition-all">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange to-orange-300 flex items-center justify-center shrink-0">
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
@@ -71,9 +71,9 @@ export default function ProtectionsSection() {
         </div>
 
         {/* Trade Assurance */}
-        <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50/50 to-transparent border border-blue-100/50">
+        <div className="p-4 rounded-xl bg-gradient-to-br from-orange-50/50 to-transparent border border-orange-100/50">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange to-orange-300 flex items-center justify-center">
               <Shield className="w-5 h-5 text-white" />
             </div>
             <span className="text-sm font-bold text-gray-900">

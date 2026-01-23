@@ -73,7 +73,7 @@ export default function CustomizationInquiryModal({
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               required
-              className="w-full h-12 px-4 border-2 border-[#6B6B6B] rounded-lg focus:outline-none focus:border-[#7c3aed]"
+              className="w-full h-12 px-4 border-2 border-[#6B6B6B] rounded-lg focus:outline-none focus:border-orange"
               placeholder="Enter quantity"
             />
           </div>
@@ -90,7 +90,7 @@ export default function CustomizationInquiryModal({
               onChange={(e) => setMessage(e.target.value)}
               required
               rows={4}
-              className="w-full px-4 py-3 border-2 border-[#6B6B6B] rounded-lg focus:outline-none focus:border-[#7c3aed] resize-none"
+              className="w-full px-4 py-3 border-2 border-[#6B6B6B] rounded-lg focus:outline-none focus:border-orange resize-none"
               placeholder="Describe your customization requirements..."
             />
           </div>
@@ -105,7 +105,7 @@ export default function CustomizationInquiryModal({
             <button
               type="submit"
               className="flex-1 py-3 px-4 rounded-lg text-white font-medium"
-              style={{ backgroundColor: "#7c3aed" }}
+              style={{ backgroundColor: "orange" }}
             >
               Send Inquiry
             </button>

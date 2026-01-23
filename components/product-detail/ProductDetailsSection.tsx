@@ -15,7 +15,7 @@ export default function ProductDetailsSection() {
         <div className="hidden lg:flex justify-between items-center mb-6">
           {/* Product Details Title */}
           <div className="flex items-center gap-3">
-            <div className="w-1 h-8 bg-gradient-to-b from-[#7c3aed] to-[#a78bfa] rounded-full" />
+            <div className="w-1 h-8 bg-gradient-to-b from-blue to-blue-300 rounded-full" />
             <h2 className="text-2xl font-bold text-gray-900">
               Product Details
             </h2>
@@ -50,7 +50,7 @@ export default function ProductDetailsSection() {
         {/* Mobile: Product Details Title */}
         <div className="lg:hidden mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-1 h-8 bg-gradient-to-b from-[#7c3aed] to-[#a78bfa] rounded-full" />
+            <div className="w-1 h-8 bg-gradient-to-b from-blue to-blue-300 rounded-full" />
             <h2 className="text-2xl font-bold text-gray-900">
               Product Details
             </h2>

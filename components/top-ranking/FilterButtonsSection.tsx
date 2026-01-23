@@ -21,10 +21,10 @@ export default function FilterButtonsSection() {
             <button
               key={filter.id}
               onClick={() => setActiveFilter(filter.id)}
-              className={`px-3 sm:px-4 lg:px-[16px] py-2 sm:py-2.5 lg:py-[16px] rounded-[8px] sm:rounded-[10px] border border-[#7c3aed] text-[12px] sm:text-[14px] lg:text-[16px] font-medium leading-[16px] sm:leading-[20px] lg:leading-[22.4px] cursor-pointer transition-colors ${
+              className={`px-3 sm:px-4 lg:px-[16px] py-2 sm:py-2.5 lg:py-[16px] rounded-[8px] sm:rounded-[10px] border border-orange text-[12px] sm:text-[14px] lg:text-[16px] font-medium leading-[16px] sm:leading-[20px] lg:leading-[22.4px] cursor-pointer transition-colors ${
                 activeFilter === filter.id
-                  ? "bg-[#7c3aed] text-white"
-                  : "bg-transparent text-[#7c3aed] hover:bg-[#7c3aed]/10"
+                  ? "bg-orange text-white"
+                  : "bg-transparent text-orange hover:bg-orange/10"
               }`}
             >
               {filter.label}
