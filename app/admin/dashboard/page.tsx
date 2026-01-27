@@ -1,5 +1,9 @@
 import Link from "next/link";
 
+export const metadata = {
+  title: "Admin — Dashboard",
+};
+
 export default function AdminDashboardPage() {
   return (
     <div>

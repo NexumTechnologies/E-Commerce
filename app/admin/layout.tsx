@@ -3,10 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export const metadata = {
-  title: "Admin — Dashboard",
-};
-
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex bg-gray-50">
