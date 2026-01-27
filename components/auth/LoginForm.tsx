@@ -34,7 +34,9 @@ export default function LoginForm() {
       }
 
       const role = payload.role;
-      if (role === "seller") {
+      if (role === "admin") {
+        router.push("/admin");
+      } else if (role === "seller") {
         router.push("/seller/dashboard");
       } else if (role === "buyer") {
         router.push("/buyer/dashboard");
@@ -150,10 +152,10 @@ export default function LoginForm() {
         {/* Submit */}
         <Button
           type="submit"
-          disabled={mutation.isLoading}
+          disabled={mutation.status === "pending"}
           className="w-full h-12 bg-blue text-white rounded-lg"
         >
-          {mutation.isLoading ? "Signing in..." : "SIGN IN"}
+          {mutation.status === "pending" ? "Signing in..." : "SIGN IN"}
         </Button>
 
         {/* Forgot */}

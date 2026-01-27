@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="min-h-screen flex bg-gray-50">
       <aside className="w-64 bg-white border-r hidden md:block">
@@ -26,7 +31,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Section title="Approvals">
             <NavItem href="/admin/approvals/buyers">Buyer Approvals</NavItem>
             <NavItem href="/admin/approvals/sellers">Seller Approvals</NavItem>
-            <NavItem href="/admin/approvals/products">Product Approvals</NavItem>
+            <NavItem href="/admin/approvals/products">
+              Product Approvals
+            </NavItem>
           </Section>
 
           <Section title="Product Management">
@@ -40,7 +47,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <NavItem href="/admin/orders">All Orders</NavItem>
             <NavItem href="/admin/orders/pending">Pending Orders</NavItem>
             <NavItem href="/admin/orders/completed">Completed Orders</NavItem>
-            <NavItem href="/admin/orders/cancelled">Cancelled / Refunded</NavItem>
+            <NavItem href="/admin/orders/cancelled">
+              Cancelled / Refunded
+            </NavItem>
           </Section>
 
           <Section title="Reports & Analytics">
@@ -56,8 +65,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(true);
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+
+  // determine if any child NavItem matches current pathname; if so, open the section by default
+  const childrenArray = React.Children.toArray(children);
+  const hasActive = childrenArray.some((child) => {
+    if (!React.isValidElement(child)) return false;
+    const href = (child.props as any).href;
+    if (!href || !pathname) return false;
+    return pathname === href || pathname.startsWith(href);
+  });
+
+  const [open, setOpen] = useState(hasActive);
 
   return (
     <div className="mb-4">
@@ -87,11 +113,20 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function NavItem({ href, children }: { href: string; children: React.ReactNode }) {
+function NavItem({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  const isActive = pathname === href || (pathname && pathname.startsWith(href));
+
   return (
     <Link
       href={href}
-      className="block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100"
+      className={`block px-3 py-2 rounded-md text-sm ${isActive ? "bg-[#7c3aed]/10 text-[#7c3aed]" : "text-gray-700 hover:bg-gray-100"}`}
     >
       {children}
     </Link>

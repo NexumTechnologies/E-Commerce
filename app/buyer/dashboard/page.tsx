@@ -4,7 +4,8 @@ import React from "react";
 
 export default function BuyerDashboardHome() {
   const buyerName = "XYZ Traders";
-  const accountStatus = "Pending"; // sample
+  // example status — use a plain string so equality checks are allowed by the TS compiler
+  const accountStatus: string = "Pending"; // sample
   const statusClass =
     accountStatus === "Approved"
       ? "inline-block px-2 py-0.5 text-green-700 bg-green-50 rounded font-medium"
