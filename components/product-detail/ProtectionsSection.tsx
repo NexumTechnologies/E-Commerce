@@ -24,7 +24,7 @@ export default function ProtectionsSection() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-900 mb-1">
-                Delivery via <span className="text-orange">TradeHub</span> logistics
+                Delivery via <span className="text-orange">MaheDeluxe</span> logistics
               </p>
               <p className="text-xs text-gray-600 leading-relaxed">
                 Expect your order to be delivered before scheduled dates or
@@ -45,7 +45,7 @@ export default function ProtectionsSection() {
                 Secure payments
               </p>
               <p className="text-xs text-gray-600 leading-relaxed">
-                Every payment you make on TradeHub is secured with strict
+                Every payment you make on MaheDeluxe is secured with strict
                 SSL encryption and PCI DSS data protection protocols.
               </p>
             </div>
@@ -81,7 +81,7 @@ export default function ProtectionsSection() {
             </span>
           </div>
           <p className="text-xs text-gray-600 leading-relaxed ml-13">
-            TradeHub protects all your orders placed and paid on the platform
+            MaheDeluxe protects all your orders placed and paid on the platform
           </p>
         </div>
       </div>

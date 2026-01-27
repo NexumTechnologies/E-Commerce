@@ -37,7 +37,7 @@ export default function SignInPage() {
       <div className="md:hidden">
         <div className="bg-gradient-to-br from-[#6b21a8] to-[#8b5cf6] px-4 py-8">
           <h1 className="text-white text-[25px] font-bold leading-[35px] text-center">
-            Sign in to TradeHub
+            Sign in to MaheDeluxe
           </h1>
           <p className="text-white/90 text-[16px] leading-[18.2px] font-medium text-center mt-1">
             or use you email account:

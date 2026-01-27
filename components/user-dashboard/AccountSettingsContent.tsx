@@ -417,7 +417,7 @@ export default function AccountSettingsContent() {
           <form className="space-y-6 mt-10" onSubmit={(e) => e.preventDefault()}>
             <div className="space-y-3">
               <label className="text-sm font-extrabold text-orange ml-1 uppercase tracking-wider">New Email Address</label>
-              <input type="email" placeholder="new.email@tradehub.com" className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-orange/10 transition-all font-medium" />
+              <input type="email" placeholder="new.email@MaheDeluxe.com" className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-orange/10 transition-all font-medium" />
             </div>
             <div className="space-y-3">
               <label className="text-sm font-extrabold text-orange ml-1 uppercase tracking-wider">Account Password</label>
@@ -464,7 +464,7 @@ export default function AccountSettingsContent() {
             <Settings className="w-6 h-6 text-white" />,
             currentView === "privacy" ? "Privacy Controls" : 
             currentView === "notifications" ? "Notification Hub" : "Targeting Preferences",
-            "Tailor your TradeHub experience to your needs"
+            "Tailor your MaheDeluxe experience to your needs"
           )}
           
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">

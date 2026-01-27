@@ -25,9 +25,10 @@ export default function LoginForm() {
     onSuccess: (resData: any) => {
       // API returns { success, message, data: { role, is_varified, ... } }
       const payload = resData?.data || {};
+      console.log("here", payload);
 
-      // If user is not verified, send them to verification page
-      if (payload.is_varified === false) {
+      // If user is not verified (and not an admin), send them to verification page
+      if (payload.is_varified === false && payload.role !== "admin") {
         router.push("/auth/verification");
         router.refresh();
         return;
@@ -35,7 +36,7 @@ export default function LoginForm() {
 
       const role = payload.role;
       if (role === "admin") {
-        router.push("/admin");
+        router.push("/admin/dashboard");
       } else if (role === "seller") {
         router.push("/seller/dashboard");
       } else if (role === "buyer") {
@@ -70,7 +71,7 @@ export default function LoginForm() {
       {/* Desktop Title */}
       <div className="hidden md:block text-center">
         <h1 className="text-blue text-[25px] font-bold leading-[35px]">
-          Sign in to TradeHub
+          Sign in to MaheDeluxe
         </h1>
         <p className="text-blue text-[16px] leading-[18.2px] font-medium mt-1">
           or use your email account:

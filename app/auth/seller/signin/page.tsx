@@ -26,7 +26,7 @@ export default function SellerSignInPage() {
       <div className="md:hidden">
         <div className="bg-gradient-to-br from-[#6b21a8] to-[#0af93a] px-4 py-8">
           <h1 className="text-white text-[25px] font-bold leading-[35px] text-center">
-            Welcome to your TradeHub seller
+            Welcome to your MaheDeluxe seller
           </h1>
           <p className="text-white/90 text-[20px] font-medium leading-[28px] text-center mt-4">
             Grow your business, showcase your products, and connect with

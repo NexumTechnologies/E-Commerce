@@ -113,7 +113,7 @@ export default function CheckoutProtectionsSection() {
           </svg>
           <div>
             <p className="text-sm font-medium text-[#000000] mb-1">
-              Delivery via <span className="text-orange">TradeHub.com</span>{" "}
+              Delivery via <span className="text-orange">MaheDeluxe.com</span>{" "}
               logistics
             </p>
             <p className="text-xs text-[#6B6B6B] leading-relaxed">
@@ -193,7 +193,7 @@ export default function CheckoutProtectionsSection() {
         {/* Trade Assurance */}
         <div>
           <p className="text-xs text-[#6B6B6B] mb-2">
-            TradeHub.com protects all your orders placed and paid on the platform
+            MaheDeluxe.com protects all your orders placed and paid on the platform
             with
           </p>
           <div className="flex items-center gap-2">

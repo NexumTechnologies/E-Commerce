@@ -3,7 +3,7 @@ import FilterButtonsSection from "@/components/top-ranking/FilterButtonsSection"
 import TopRankingProductGrid from "@/components/top-ranking/TopRankingProductGrid";
 
 export const metadata = {
-  title: "Best Sellers - TradeHub | Top-Rated Products",
+  title: "Best Sellers - MaheDeluxe | Top-Rated Products",
   description: "Browse best-selling products and top-rated items from verified vendors",
 };
 

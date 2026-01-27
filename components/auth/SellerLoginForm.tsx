@@ -49,7 +49,7 @@ export default function SellerLoginForm() {
       {/* Desktop Title - Hidden on mobile */}
       <div className="hidden md:block text-center">
         <h1 className="text-blue text-[25px] font-bold leading-[35px]">
-          Sign in to TradeHub
+          Sign in to MaheDeluxe
         </h1>
         <p className="text-[#6B6B6B] text-[16px] leading-[18.2px] font-medium mt-1">
           or use you email account:

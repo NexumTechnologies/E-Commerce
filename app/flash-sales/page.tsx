@@ -3,7 +3,7 @@ import FlashDealsSection from "@/components/top-deals/FlashDealsSection";
 import TopDealsProductGrid from "@/components/top-deals/TopDealsProductGrid";
 
 export const metadata = {
-  title: "Flash Sales - TradeHub | Limited Time Offers",
+  title: "Flash Sales - MaheDeluxe | Limited Time Offers",
   description: "Discover exclusive flash sales and limited-time offers from verified vendors",
 };
 

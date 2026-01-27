@@ -2,13 +2,30 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import api from "@/lib/axios";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      await api.post("/auth/logout");
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      console.error("Logout failed", err);
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex bg-gray-50">
       <aside className="w-64 bg-white border-r hidden md:block">
@@ -58,6 +75,17 @@ export default function AdminLayout({
             <NavItem href="/admin/reports/revenue">Revenue Reports</NavItem>
           </Section>
         </nav>
+
+        {/* Logout button at the bottom */}
+        <div className="px-4 py-6 border-t mt-auto">
+          <button
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-md text-sm text-red-600 hover:bg-red-50"
+          >
+            {loggingOut ? "Logging out..." : "Logout"}
+          </button>
+        </div>
       </aside>
 
       <main className="flex-1 p-6">{children}</main>
