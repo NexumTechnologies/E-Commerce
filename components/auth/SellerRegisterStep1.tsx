@@ -70,7 +70,7 @@ export default function SellerRegisterStep1({ role = "seller" }: { role?: Role }
       "registration",
       JSON.stringify({
         role: storedRole,
-        step1: { fullName, workEmail, mobileNumber, password },
+        step1: { fullName, workEmail, mobileNumber, password, confirmPassword },
       })
     );
 

@@ -120,7 +120,7 @@ export default function Header() {
 
               {/* Business Registration */}
               <Link
-                href="/auth/seller/register"
+                href="/auth/register"
                 className="flex items-center gap-2 text-gray-700 hover:text-orange transition-colors"
               >
                 <Briefcase className="h-6 w-6" />

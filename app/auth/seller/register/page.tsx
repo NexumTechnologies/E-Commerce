@@ -6,9 +6,9 @@ import SellerRegisterStep1 from "@/components/auth/SellerRegisterStep1";
 import SignInPromo from "@/components/auth/SignInPromo";
 
 export default function SellerRegisterPage() {
-  const [role, setRole] = useState<"seller" | "buyer">("seller");
+  const [role, setRole] = useState<"seller" | "buyer" | "customer">("seller");
 
-  const Tab = ({ id, label }: { id: "seller" | "buyer"; label: string }) => (
+  const Tab = ({ id, label }: { id: "seller" | "buyer" | "customer"; label: string }) => (
     <button
       onClick={() => setRole(id)}
       className={`px-4 py-2 rounded-t-lg font-medium border-b-2 -mb-px transition-colors ${
@@ -32,6 +32,7 @@ export default function SellerRegisterPage() {
               <div className="flex gap-2">
                 <Tab id="seller" label="Seller" />
                 <Tab id="buyer" label="Buyer" />
+                <Tab id="customer" label="Customer" />
               </div>
             </div>
             <SellerRegisterStep1 role={role} />
