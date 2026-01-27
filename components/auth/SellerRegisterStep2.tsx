@@ -5,22 +5,21 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export default function SellerRegisterStep2() {
+export default function SellerRegisterStep2({ role = "seller" }: { role?: "seller" | "buyer" }) {
   const [companyName, setCompanyName] = useState("");
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
   const [businessType, setBusinessType] = useState("");
-  const [businessProductCategories, setBusinessProductCategories] =
-    useState("");
+  
   const [error, setError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
     // Load step 1 data from sessionStorage
-    const stored = sessionStorage.getItem("sellerRegistration");
+    const stored = sessionStorage.getItem("registration");
     if (!stored) {
       // If no step 1 data, redirect back to step 1
-      router.push("/auth/seller/register");
+      router.push(`/auth/${role}/register`);
     }
   }, [router]);
 
@@ -28,23 +27,17 @@ export default function SellerRegisterStep2() {
     e.preventDefault();
     setError("");
 
-    if (
-      !companyName ||
-      !country ||
-      !city ||
-      !businessType ||
-      !businessProductCategories
-    ) {
+    if (!companyName || !country || !city || !businessType) {
       setError("All required fields must be filled");
       return;
     }
 
     // Load existing data and add step 2
-    const stored = sessionStorage.getItem("sellerRegistration");
+    const stored = sessionStorage.getItem("registration");
     const data = stored ? JSON.parse(stored) : {};
 
     sessionStorage.setItem(
-      "sellerRegistration",
+      "registration",
       JSON.stringify({
         ...data,
         step2: {
@@ -52,13 +45,12 @@ export default function SellerRegisterStep2() {
           country,
           city,
           businessType,
-          businessProductCategories,
         },
       })
     );
 
     // Navigate to step 3
-    router.push("/auth/seller/register/step3");
+    router.push(`/auth/${role}/register/step3`);
   };
 
   return (
@@ -189,12 +181,10 @@ export default function SellerRegisterStep2() {
               <option value="" disabled>
                 Business Type
               </option>
-              <option value="Manufacturer">Manufacturer</option>
-              <option value="Trading Company">Trading Company</option>
-              <option value="Distributor / Wholesaler">
-                Distributor / Wholesaler
-              </option>
-              <option value="Service Provider">Service Provider</option>
+              <option value="Wholesaler">Wholesaler</option>
+              <option value="Distributor">Distributor</option>
+              <option value="Importer">Importer</option>
+              <option value="Exporter">Exporter</option>
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
               <svg
@@ -217,17 +207,7 @@ export default function SellerRegisterStep2() {
           </div>
         </div>
 
-        {/* Business Product Categories Input */}
-        <div className="mb-6">
-          <Input
-            type="text"
-            placeholder="Business Product Categories"
-            value={businessProductCategories}
-            onChange={(e) => setBusinessProductCategories(e.target.value)}
-            required
-            className="h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
-          />
-        </div>
+        {/* (Removed Business Product Categories field) */}
 
         {/* Error Message */}
         {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}

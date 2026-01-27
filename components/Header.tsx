@@ -2,7 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Menu, X, ShoppingCart, MessageSquare, User, Globe, MapPin, ChevronDown } from "lucide-react";
+import {
+  Search,
+  Menu,
+  X,
+  ShoppingCart,
+  Briefcase,
+  LogIn,
+  Globe,
+  MapPin,
+  ChevronDown,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function Header() {
@@ -30,9 +40,11 @@ export default function Header() {
   }, [isMobileMenuOpen]);
 
   return (
-    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-      isScrolled ? "bg-white shadow-lg" : "bg-white"
-    }`}>
+    <header
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+        isScrolled ? "bg-white shadow-lg" : "bg-white"
+      }`}
+    >
       {/* Main Header Bar */}
       <div className="w-full border-b border-gray-200">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,7 +57,7 @@ export default function Header() {
               >
                 <Menu className="h-6 w-6" />
               </button>
-              
+
               <Link href="/" className="flex items-center">
                 <img
                   src="/logo.png"
@@ -94,16 +106,6 @@ export default function Header() {
                 <Globe className="h-5 w-5 text-orange" />
               </button>
 
-              {/* Messages */}
-              <Link
-                href="/user/dashboard/messages"
-                className="relative text-gray-700 hover:text-orange transition-colors"
-              >
-                <MessageSquare className="h-6 w-6" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange text-white text-xs rounded-full flex items-center justify-center">
-                  3
-                </span>
-              </Link>
 
               {/* Cart */}
               <Link
@@ -116,15 +118,27 @@ export default function Header() {
                 </span>
               </Link>
 
-              {/* User Account */}
+              {/* Business Registration */}
+              <Link
+                href="/auth/seller/register"
+                className="flex items-center gap-2 text-gray-700 hover:text-orange transition-colors"
+              >
+                <Briefcase className="h-6 w-6" />
+                <span className="hidden xl:block text-sm font-medium">
+                  Business Registration
+                </span>
+              </Link>
+
+              
+
+
+              {/* Login */}
               <Link
                 href="/auth/signin"
                 className="flex items-center gap-2 text-gray-700 hover:text-orange transition-colors"
               >
-                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange flex items-center justify-center">
-                  <User className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
-                </div>
-                <span className="hidden xl:block text-sm font-medium">Account</span>
+                <LogIn className="h-6 w-6" />
+                <span className="hidden xl:block text-sm font-medium">Login</span>
               </Link>
             </div>
           </div>
@@ -165,44 +179,44 @@ export default function Header() {
               <Menu className="h-4 w-4" />
               <span>Browse All</span>
             </Link>
-            
+
             <Link
               href="/flash-sales"
               className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
             >
               Flash Sales
             </Link>
-            
+
             <Link
               href="/best-sellers"
               className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
             >
               Best Sellers
             </Link>
-            
+
             <Link
               href="/custom-orders"
               className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
             >
               Custom Orders
             </Link>
-            
+
             <Link
               href="/on-demand"
               className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
             >
               On-Demand
             </Link>
-            
+
             <div className="flex-1" />
-            
+
             <Link
               href="/suppliers"
               className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
             >
               Find Suppliers
             </Link>
-            
+
             <Link
               href="/auth/seller/signin"
               className="text-sm font-semibold text-orange hover:text-blue transition-colors"
@@ -234,18 +248,32 @@ export default function Header() {
 
             {/* Drawer Content */}
             <div className="p-4">
-              {/* User Section */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
+              {/* User Section: Business Registration & Login */}
+              <div className="mb-6 pb-6 border-b border-gray-200 space-y-2">
                 <Link
-                  href="/auth/signin"
+                  href="/auth/seller/register"
                   className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <div className="w-10 h-10 rounded-full bg-orange flex items-center justify-center">
-                    <User className="h-5 w-5 text-white" />
+                    <Briefcase className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">Sign In</div>
+                    <div className="font-semibold text-gray-900">Business Registration</div>
+                    <div className="text-sm text-gray-600">Create a business account</div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/auth/signin"
+                  className="flex items-center gap-3 p-3 bg-white rounded-lg hover:bg-gray-100 transition-colors border border-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
+                    <LogIn className="h-5 w-5 text-gray-700" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Login</div>
                     <div className="text-sm text-gray-600">Access your account</div>
                   </div>
                 </Link>
@@ -267,7 +295,9 @@ export default function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-orange rounded-lg transition-colors"
                 >
-                  <span className="w-5 h-5 flex items-center justify-center">🔥</span>
+                  <span className="w-5 h-5 flex items-center justify-center">
+                    🔥
+                  </span>
                   <span>Flash Sales</span>
                 </Link>
 
@@ -276,7 +306,9 @@ export default function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-orange rounded-lg transition-colors"
                 >
-                  <span className="w-5 h-5 flex items-center justify-center">⭐</span>
+                  <span className="w-5 h-5 flex items-center justify-center">
+                    ⭐
+                  </span>
                   <span>Best Sellers</span>
                 </Link>
 
@@ -285,7 +317,9 @@ export default function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-orange rounded-lg transition-colors"
                 >
-                  <span className="w-5 h-5 flex items-center justify-center">📋</span>
+                  <span className="w-5 h-5 flex items-center justify-center">
+                    📋
+                  </span>
                   <span>Custom Orders</span>
                 </Link>
 
@@ -294,7 +328,9 @@ export default function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-orange rounded-lg transition-colors"
                 >
-                  <span className="w-5 h-5 flex items-center justify-center">⚙️</span>
+                  <span className="w-5 h-5 flex items-center justify-center">
+                    ⚙️
+                  </span>
                   <span>On-Demand</span>
                 </Link>
 
@@ -304,7 +340,9 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-orange rounded-lg transition-colors"
                   >
-                    <span className="w-5 h-5 flex items-center justify-center">🏭</span>
+                    <span className="w-5 h-5 flex items-center justify-center">
+                      🏭
+                    </span>
                     <span>Find Suppliers</span>
                   </Link>
 
@@ -313,7 +351,9 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-orange rounded-lg transition-colors"
                   >
-                    <span className="w-5 h-5 flex items-center justify-center">💬</span>
+                    <span className="w-5 h-5 flex items-center justify-center">
+                      💬
+                    </span>
                     <span>Support</span>
                   </Link>
 
@@ -322,7 +362,9 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 bg-orange text-white rounded-lg hover:opacity-90 transition-opacity font-semibold mt-2"
                   >
-                    <span className="w-5 h-5 flex items-center justify-center">✨</span>
+                    <span className="w-5 h-5 flex items-center justify-center">
+                      ✨
+                    </span>
                     <span>Become a Vendor</span>
                   </Link>
                 </div>

@@ -9,6 +9,7 @@ export interface IUser extends Document {
   role: UserRole;
   companyName?: string;
   country?: string;
+  mobileNumber?: string;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -29,6 +30,7 @@ const UserSchema = new Schema<IUser>(
     },
     companyName: String,
     country: String,
+    mobileNumber: String,
   },
   { timestamps: true }
 );

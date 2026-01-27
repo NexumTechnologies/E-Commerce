@@ -4,41 +4,90 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { registerUser } from "@/lib/api";
 
-export default function SellerRegisterStep1() {
+type Role = "seller" | "buyer" | "customer";
+
+export default function SellerRegisterStep1({ role = "seller" }: { role?: Role }) {
   const [fullName, setFullName] = useState("");
   const [workEmail, setWorkEmail] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!fullName || !workEmail || !mobileNumber) {
-      setError("All fields are required");
+    // Validation differs for customer (no confirm password required)
+    if (role === "customer") {
+      if (!fullName || !workEmail || !mobileNumber || !password) {
+        setError("All fields are required");
+        return;
+      }
+    } else {
+      if (!fullName || !workEmail || !mobileNumber || !password || !confirmPassword) {
+        setError("All fields are required");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setError("Passwords do not match");
+        return;
+      }
+    }
+
+    const storedRole = role === "customer" ? "user" : role;
+
+    if (role === "customer") {
+      // Directly register customer (role -> 'user')
+        try {
+        setLoading(true);
+        await registerUser({
+          name: fullName,
+          email: workEmail,
+          password,
+          // include mobileNumber and role
+          mobileNumber,
+          role: storedRole,
+        } as any);
+        // on success, navigate to home
+        router.push("/");
+      } catch (err: unknown) {
+        const msg = err && typeof err === "object" && "message" in err ? (err as any).message : "Registration failed";
+        setError(msg as string);
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
-    // Store step 1 data in sessionStorage
+    // Store step 1 data + role in sessionStorage for multi-step flows
     sessionStorage.setItem(
-      "sellerRegistration",
+      "registration",
       JSON.stringify({
-        step1: { fullName, workEmail, mobileNumber },
+        role: storedRole,
+        step1: { fullName, workEmail, mobileNumber, password },
       })
     );
 
-    // Navigate to step 2
-    router.push("/auth/seller/register/step2");
+    // Navigate to step 2 for the selected role
+    router.push(`/auth/${storedRole}/register/step2`);
   };
 
   return (
     <div className="w-full">
       {/* Desktop Title - Hidden on mobile */}
       <div className="hidden md:block text-center">
-        <h1 className="text-blue text-[25px] font-bold leading-[35px]">
-          Create Your Seller Account
+          <h1 className="text-blue text-[25px] font-bold leading-[35px]">
+          {role === "seller"
+            ? "Create Your Seller Account"
+            : role === "buyer"
+            ? "Create Your Buyer Account"
+            : "Create Your Account"}
         </h1>
         <p className="text-[#6B6B6B] text-[16px] leading-[18.2px] font-medium mt-1">
           Start by creating your basic account details.
@@ -85,7 +134,7 @@ export default function SellerRegisterStep1() {
           </div>
         </div>
 
-        {/* Work Email Input */}
+        {/* Work Email / Email Input */}
         <div className="mb-6">
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2">
@@ -116,7 +165,7 @@ export default function SellerRegisterStep1() {
             </div>
             <Input
               type="email"
-              placeholder="Work Email"
+              placeholder={role === "customer" ? "Email" : "Work Email"}
               value={workEmail}
               onChange={(e) => setWorkEmail(e.target.value)}
               required
@@ -163,15 +212,58 @@ export default function SellerRegisterStep1() {
           </div>
         </div>
 
+        {/* Password Input */}
+        <div className="mb-6">
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17 11V9C17 6.79086 15.2091 5 13 5H11C8.79086 5 7 6.79086 7 9V11" stroke="#6B6B6B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <rect x="3" y="11" width="18" height="10" rx="2" stroke="#6B6B6B" strokeWidth="1.5" />
+              </svg>
+            </div>
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
+            />
+          </div>
+        </div>
+
+        {/* Confirm Password Input (only for seller/buyer) */}
+        {role !== "customer" && (
+          <div className="mb-6">
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 15V11" stroke="#6B6B6B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="3" y="5" width="18" height="14" rx="2" stroke="#6B6B6B" strokeWidth="1.5" />
+                </svg>
+              </div>
+              <Input
+                type="password"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="pl-12 h-12 border-0 border-b-2 border-[#6B6B6B] rounded-none text-[16px] leading-[22px] font-normal placeholder:text-[#6B6B6B] focus-visible:ring-0 focus-visible:border-b-2 focus-visible:border-blue"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Error Message */}
         {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
 
         {/* Next Button */}
         <Button
           type="submit"
+          disabled={loading}
           className="w-full h-12 bg-blue hover:bg-blue-light text-white text-[16px] font-medium rounded-lg"
         >
-          Next
+          {loading ? "Registering..." : "Next"}
         </Button>
       </form>
     </div>

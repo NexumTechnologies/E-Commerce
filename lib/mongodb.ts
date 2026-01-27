@@ -16,9 +16,12 @@ export async function connectDB() {
   const MONGODB_URI = process.env.MONGODB_URI?.trim();
 
   if (!MONGODB_URI) {
-    throw new Error(
-      "❌ MONGODB_URI is not set in environment variables. Please add it to Vercel environment variables or .env.local"
+    // Don't throw — allow the app to run without MongoDB configured.
+    // This project uses Postgres in the separate backend; skip Mongo when not set.
+    console.warn(
+      "❌ MONGODB_URI is not set. Skipping MongoDB connection (this is intentional if you only use Postgres)."
     );
+    return null;
   }
 
   // Validate connection string format

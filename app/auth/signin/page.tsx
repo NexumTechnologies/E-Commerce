@@ -3,10 +3,21 @@
 import Link from "next/link";
 import LoginForm from "@/components/auth/LoginForm";
 import SignUpPromo from "@/components/auth/SignUpPromo";
+import { useIsMutating } from "@tanstack/react-query";
 
 export default function SignInPage() {
+  const isMutating = useIsMutating();
   return (
     <div className="min-h-screen bg-white">
+      {/* Global loading overlay when any mutation is running (e.g., signing in) */}
+      {isMutating > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-full border-4 border-t-transparent border-white animate-spin" />
+            <span className="text-white font-medium">Signing in...</span>
+          </div>
+        </div>
+      )}
       {/* Desktop Layout - Two Columns */}
       <div className="hidden md:flex min-h-screen">
         {/* Left Column - Sign Up Promo (40%) */}

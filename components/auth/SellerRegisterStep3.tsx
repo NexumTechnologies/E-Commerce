@@ -4,7 +4,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function SellerRegisterStep3() {
+import { useMutation } from "@tanstack/react-query";
+import {
+  registerUser,
+  createSellerProfile,
+  createBuyerProfile,
+} from "@/lib/api";
+
+export default function SellerRegisterStep3({
+  role = "seller",
+}: {
+  role?: "seller" | "buyer";
+}) {
   const [businessLicense, setBusinessLicense] = useState<File | null>(null);
   const [taxCertificate, setTaxCertificate] = useState<File | null>(null);
   const [factoryPhoto, setFactoryPhoto] = useState<File | null>(null);
@@ -14,16 +25,16 @@ export default function SellerRegisterStep3() {
 
   useEffect(() => {
     // Load step 1 and 2 data from sessionStorage
-    const stored = sessionStorage.getItem("sellerRegistration");
+    const stored = sessionStorage.getItem("registration");
     if (!stored) {
       // If no previous data, redirect back to step 1
-      router.push("/auth/seller/register");
+      router.push(`/auth/${role}/register`);
     }
   }, [router]);
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setter: (file: File | null) => void
+    setter: (file: File | null) => void,
   ) => {
     const file = e.target.files?.[0] || null;
     setter(file);
@@ -36,7 +47,7 @@ export default function SellerRegisterStep3() {
 
     try {
       // Load all registration data
-      const stored = sessionStorage.getItem("sellerRegistration");
+      const stored = sessionStorage.getItem("registration");
       if (!stored) {
         setError("Please complete all previous steps");
         setLoading(false);
@@ -52,43 +63,60 @@ export default function SellerRegisterStep3() {
         return;
       }
 
-      // Prepare form data for registration
-      // Note: For now, we'll register without file uploads
-      // File uploads would need a separate API endpoint
-      const registrationData = {
-        name: step1.fullName,
-        email: step1.workEmail,
-        password: step1.mobileNumber, // Temporary - in real app, password should be collected separately
-        role: "seller",
-        companyName: step2.companyName,
-        country: step2.country,
-        // Additional fields can be added to User model if needed
-      };
-
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(registrationData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setError(result.message || "Registration failed");
+      // Prepare payloads
+      // Ensure password fields exist
+      if (!step1.password || !step1.confirmPassword) {
+        setError("Password not provided. Please go back and set a password.");
         setLoading(false);
         return;
       }
 
-      // Clear sessionStorage
-      sessionStorage.removeItem("sellerRegistration");
+      const userPayload = {
+        name: step1.fullName,
+        email: step1.workEmail,
+        password: step1.password,
+        confirm_password: step1.confirmPassword,
+        role: role, // send chosen role ('seller' or 'buyer') to backend
+      };
 
-      // Redirect to seller dashboard
-      router.push("/seller/dashboard");
+      // 1) Register user
+      const registerResult = await registerUser(userPayload);
+
+      // 2) Create profile depending on role
+      if (role === "seller") {
+        const sellerPayload = {
+          shop_name: step2.companyName,
+          business_type: step2.businessType,
+          description: "",
+          business_email: step1.workEmail,
+          business_phone: step1.mobileNumber,
+          business_address: step2.city,
+          city: step2.city,
+          country: step2.country,
+          id_card_number: step1.mobileNumber, // placeholder; ideally collect proper id
+        };
+
+        await createSellerProfile(sellerPayload);
+      } else {
+        const buyerPayload = {
+          dob: step2.dob || null,
+          gender: step2.gender || "other",
+        };
+        await createBuyerProfile(buyerPayload);
+      }
+
+      // Clear sessionStorage
+      sessionStorage.removeItem("registration");
+
+      // Redirect to appropriate dashboard after successful registration
+      if (role === "seller") {
+        router.push("/seller/dashboard");
+      } else {
+        router.push("/buyer/dashboard");
+      }
       router.refresh();
-    } catch {
-      setError("An error occurred. Please try again.");
+    } catch (err: any) {
+      setError(err?.message || "An error occurred. Please try again.");
       setLoading(false);
     }
   };
@@ -119,9 +147,6 @@ export default function SellerRegisterStep3() {
             <label
               htmlFor="businessLicense"
               className="block w-full bg-blue rounded-lg py-3 px-4 cursor-pointer hover:bg-blue transition-colors"
-              onClick={() =>
-                document.getElementById("businessLicense")?.click()
-              }
             >
               <div className="flex items-center justify-center gap-3">
                 <svg
@@ -183,7 +208,6 @@ export default function SellerRegisterStep3() {
             <label
               htmlFor="taxCertificate"
               className="block w-full bg-blue rounded-lg py-3 px-4 cursor-pointer hover:bg-blue transition-colors"
-              onClick={() => document.getElementById("taxCertificate")?.click()}
             >
               <div className="flex items-center justify-center gap-3">
                 <svg
@@ -245,7 +269,6 @@ export default function SellerRegisterStep3() {
             <label
               htmlFor="factoryPhoto"
               className="block w-full bg-blue rounded-lg py-3 px-4 cursor-pointer hover:bg-blue transition-colors"
-              onClick={() => document.getElementById("factoryPhoto")?.click()}
             >
               <div className="flex items-center justify-center gap-3">
                 <svg

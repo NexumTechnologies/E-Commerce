@@ -24,7 +24,7 @@ export default function SellerSignInPage() {
 
       {/* Mobile Layout - Single Column */}
       <div className="md:hidden">
-        <div className="bg-gradient-to-br from-[#6b21a8] to-[#8b5cf6] px-4 py-8">
+        <div className="bg-gradient-to-br from-[#6b21a8] to-[#0af93a] px-4 py-8">
           <h1 className="text-white text-[25px] font-bold leading-[35px] text-center">
             Welcome to your TradeHub seller
           </h1>

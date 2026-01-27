@@ -8,10 +8,13 @@ export default function HeroSearchSection() {
     <section className="relative w-full min-h-[500px] lg:min-h-[600px] bg-gradient-to-tr from-blue via-blue-light to-blue">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }} />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: "40px 40px",
+          }}
+        />
       </div>
 
       <div className="relative w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-24 lg:pb-28">
@@ -22,16 +25,17 @@ export default function HeroSearchSection() {
               <TrendingUp className="h-4 w-4" />
               <span>Multi-Vendor B2B Platform</span>
             </div>
-            
+
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Connect with <span className="text-orange">Global</span> 
+              Connect with <span className="text-orange">Global</span>
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-pink-200">
-               <span className="text-orange">Suppliers</span>  & Buyers
+                <span className="text-orange">Suppliers</span> & Buyers
               </span>
             </h1>
-            
+
             <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-xl mx-auto lg:mx-0">
-              Source products from verified vendors worldwide. Build your business with our trusted multi-vendor marketplace.
+              Source products from verified vendors worldwide. Build your
+              business with our trusted multi-vendor marketplace.
             </p>
 
             {/* Quick Stats */}
@@ -82,18 +86,20 @@ export default function HeroSearchSection() {
                   Search
                 </button>
               </div>
-              
+
               {/* Quick Filters */}
               <div className="flex flex-wrap gap-2">
                 <span className="text-sm text-gray-600">Popular:</span>
-                {["Electronics", "Apparel", "Home & Garden", "Industrial"].map((tag) => (
-                  <button
-                    key={tag}
-                    className="px-4 py-1.5 bg-gray-100 hover:bg-orange hover:text-white rounded-full text-sm font-medium transition-colors"
-                  >
-                    {tag}
-                  </button>
-                ))}
+                {["Electronics", "Apparel", "Home & Garden", "Industrial"].map(
+                  (tag) => (
+                    <button
+                      key={tag}
+                      className="px-4 py-1.5 bg-gray-100 hover:bg-orange hover:text-white rounded-full text-sm font-medium transition-colors"
+                    >
+                      {tag}
+                    </button>
+                  ),
+                )}
               </div>
             </div>
 
@@ -104,14 +110,18 @@ export default function HeroSearchSection() {
                 className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-white hover:bg-white/20 transition-colors"
               >
                 <div className="font-semibold mb-1">Custom Orders</div>
-                <div className="text-sm text-white/80">Bulk requests & quotes</div>
+                <div className="text-sm text-white/80">
+                  Bulk requests & quotes
+                </div>
               </Link>
               <Link
                 href="/on-demand"
                 className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-white hover:bg-white/20 transition-colors"
               >
                 <div className="font-semibold mb-1">On-Demand</div>
-                <div className="text-sm text-white/80">Custom manufacturing</div>
+                <div className="text-sm text-white/80">
+                  Custom manufacturing
+                </div>
               </Link>
             </div>
           </div>

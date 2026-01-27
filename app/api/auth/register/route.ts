@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     await connectDB();
 
     const body = await req.json();
-    const { name, email, password, role, companyName, country } = body;
+    const { name, email, password, role, companyName, country, mobileNumber } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -40,6 +40,7 @@ export async function POST(req: Request) {
       role: role || "buyer",
       companyName,
       country,
+      mobileNumber,
     });
 
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
