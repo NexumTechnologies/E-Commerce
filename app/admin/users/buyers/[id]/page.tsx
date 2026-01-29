@@ -1,0 +1,178 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/lib/axios";
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "-";
+  try {
+    return new Date(value).toLocaleString();
+  } catch (e) {
+    return value as string;
+  }
+}
+
+function initials(name?: string) {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((s) => s.charAt(0).toUpperCase())
+    .slice(0, 2)
+    .join("");
+}
+
+export default function BuyerDetailPage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["admin-user", "buyer", id],
+    queryFn: async () => {
+      const resp = await api.get(`/users/role/buyer/${id}`);
+      return resp.data;
+    },
+    enabled: !!id,
+  });
+
+  const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: "" });
+
+  const toggleMutation = useMutation({
+    mutationFn: async () => {
+      const resp = await api.patch(`/users/${id}/toggle-status`);
+      return resp.data;
+    },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user", "buyer", id] });
+      // update cache and show toast
+      queryClient.setQueryData(["admin-user", "buyer", id], (old: any) => {
+        const updated = res?.data || {};
+        return { ...old, data: updated };
+      });
+      setToast({ show: true, message: res?.message || "User status updated" });
+      setTimeout(() => setToast({ show: false, message: "" }), 3000);
+    },
+  });
+
+  const user = data?.data;
+  const buyer = user?.Buyer;
+
+  return (
+    <div className="space-y-6">
+      {/* Toast */}
+      {toast.show && (
+        <div className="fixed top-6 right-6 z-50">
+          <div className="flex items-center gap-3 bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div className="text-sm font-medium">{toast.message}</div>
+          </div>
+        </div>
+      )}
+
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Buyer profile</h1>
+          <p className="text-sm text-gray-500 mt-1">Detailed account and profile information</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.back()}
+            className="text-sm text-gray-600 hover:text-gray-800"
+          >
+            ← Back
+          </button>
+        </div>
+      </header>
+
+      <div className="bg-white rounded-xl shadow-md p-6">
+        {isLoading ? (
+          <div className="text-center py-12">Loading...</div>
+        ) : error ? (
+          <div className="text-center text-red-600 py-12">Failed to load buyer</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex flex-col items-center md:items-start gap-4">
+              <div className="w-36 h-36 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center text-3xl font-semibold text-gray-700">
+                {buyer?.profile_image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={buyer.profile_image} alt={user?.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div>{initials(user?.name)}</div>
+                )}
+              </div>
+
+              <div className="text-center md:text-left">
+                <div className="text-lg font-bold">{user?.name || "-"}</div>
+                <div className="text-sm text-gray-500">{user?.email || "-"}</div>
+              </div>
+
+              <div className="mt-2">
+                {user?.is_varified ? (
+                  <span className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm">
+                    <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Verified
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => toggleMutation.mutate()}
+                    disabled={toggleMutation.status === "pending"}
+                    className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm disabled:opacity-60"
+                  >
+                    {toggleMutation.status === "pending" ? "Verifying..." : "Verify user"}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <div className="text-xs text-gray-500">Role</div>
+                  <div className="mt-1 font-medium">{user?.role || "-"}</div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="text-xs text-gray-500">Last Login</div>
+                  <div className="mt-1 font-medium">{formatDate(user?.last_login)}</div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="text-xs text-gray-500">Account Created</div>
+                  <div className="mt-1 font-medium">{formatDate(user?.created_at)}</div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="text-xs text-gray-500">Email Verified</div>
+                  <div className="mt-1 font-medium">{user?.is_varified ? "Yes" : "No"}</div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Buyer profile</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <div className="text-xs text-gray-500">DOB</div>
+                    <div className="mt-1 font-medium">{formatDate(buyer?.dob)}</div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg">
+                    <div className="text-xs text-gray-500">Gender</div>
+                    <div className="mt-1 font-medium">{buyer?.gender || "-"}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

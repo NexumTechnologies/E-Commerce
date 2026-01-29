@@ -18,11 +18,12 @@ export default function SellerSidebar() {
 
   const items = [
     { href: "/seller/dashboard", label: "Dashboard" },
-    { href: "/seller/dashboard/browse-products", label: "Browse Products" },
+    { href: "/seller/dashboard/categories", label: "Categories" },
+    { href: "/seller/dashboard/products", label: "Products" },
     { href: "/seller/dashboard/orders", label: "My Orders" },
-    { href: "/seller/dashboard/invoices", label: "Invoices" },
+    // { href: "/seller/dashboard/invoices", label: "Invoices" },
     { href: "/seller/dashboard/profile", label: "Profile" },
-    { href: "/seller/dashboard/documents", label: "Documents" },
+    // { href: "/seller/dashboard/documents", label: "Documents" },
   ];
 
   const isActive = (href: string) => {

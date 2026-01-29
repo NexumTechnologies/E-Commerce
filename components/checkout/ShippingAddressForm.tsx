@@ -10,6 +10,7 @@ interface ShippingAddressFormProps {
   onComplete: (complete: boolean) => void;
   isActive: boolean;
   onActivate: () => void;
+  onAddressChange?: (address: string) => void;
 }
 
 export default function ShippingAddressForm({
@@ -17,12 +18,13 @@ export default function ShippingAddressForm({
   onComplete,
   isActive,
   onActivate,
+  onAddressChange,
 }: ShippingAddressFormProps) {
   const [formData, setFormData] = useState({
-    country: "Egypt",
-    firstName: "Name",
+    country: "United Arab Emirates",
+    firstName: "",
     lastName: "",
-    phone: "02",
+    phone: "",
     apartment: "",
     state: "",
     city: "",
@@ -30,8 +32,28 @@ export default function ShippingAddressForm({
     setAsDefault: false,
   });
 
+  const buildAddressSummary = (data: typeof formData) => {
+    const parts: string[] = [];
+    const fullName = `${data.firstName} ${data.lastName}`.trim();
+    if (fullName) parts.push(fullName);
+    if (data.phone) parts.push(data.phone);
+
+    const addressLineParts: string[] = [];
+    if (data.apartment) addressLineParts.push(data.apartment);
+    if (data.city) addressLineParts.push(data.city);
+    if (data.state) addressLineParts.push(data.state);
+    if (data.postalCode) addressLineParts.push(data.postalCode);
+    addressLineParts.push("United Arab Emirates");
+
+    parts.push(addressLineParts.filter(Boolean).join(", "));
+    return parts.filter(Boolean).join(" | ");
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (onAddressChange) {
+      onAddressChange(buildAddressSummary(formData));
+    }
     onComplete(true);
   };
 
@@ -39,11 +61,17 @@ export default function ShippingAddressForm({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]:
+          type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+      };
+      if (onAddressChange) {
+        onAddressChange(buildAddressSummary(next));
+      }
+      return next;
+    });
   };
 
   return (
@@ -96,49 +124,21 @@ export default function ShippingAddressForm({
 
       {isComplete && !isActive ? (
         <div className="text-sm text-[#6B6B6B]">
-          <p className="font-medium text-[#000000]">Mohamed Hassan</p>
-          <p>(+20) 01151863033</p>
-          <p>Al Obour City, Obour, Al-Qalyubia Governorate, 60606, Egypt</p>
+          <p className="font-medium text-[#000000]">
+            {`${formData.firstName} ${formData.lastName}`.trim() || "Name"}
+          </p>
+          {formData.phone && <p>{formData.phone}</p>}
+          <p>
+            {[formData.apartment, formData.city, formData.state,
+              formData.postalCode,
+              "United Arab Emirates",
+            ]
+              .filter(Boolean)
+              .join(", ")}
+          </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Country/Region */}
-          <div>
-            <label className="block text-sm font-medium text-[#000000] mb-2">
-              Country/region
-            </label>
-            <div className="relative">
-              <select
-                name="country"
-                value={formData.country}
-                onChange={handleChange}
-                className="w-full h-12 px-4 border-2 border-[#E0E0E0] rounded-lg focus:outline-none focus:border-orange appearance-none bg-white"
-              >
-                <option value="Egypt">Egypt</option>
-                <option value="United States">United States</option>
-                <option value="United Kingdom">United Kingdom</option>
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M19.92 8.95L13.4 15.47C12.63 16.24 11.37 16.24 10.6 15.47L4.08 8.95"
-                    stroke="#6B6B6B"
-                    strokeWidth="1.5"
-                    strokeMiterlimit="10"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
           {/* First Name and Last Name */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -236,55 +236,6 @@ export default function ShippingAddressForm({
             >
               Set as default shipping address
             </label>
-          </div>
-
-          {/* Shipping Method */}
-          <div className="pt-4 border-t border-[#E0E0E0]">
-            <h3 className="text-base font-semibold text-[#000000] mb-4">
-              Shipping Method
-            </h3>
-            <div className="space-y-3">
-              <label className="flex items-center gap-3 p-3 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-orange">
-                <input
-                  type="radio"
-                  name="shippingMethod"
-                  value="standard"
-                  defaultChecked
-                  className="w-4 h-4 text-[#7c3aed]"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-[#000000]">
-                    Standard Delivery - 3-7 business days
-                  </p>
-                </div>
-              </label>
-              <label className="flex items-center gap-3 p-3 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-orange">
-                <input
-                  type="radio"
-                  name="shippingMethod"
-                  value="express"
-                  className="w-4 h-4 text-[#7c3aed]"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-[#000000]">
-                    Express Delivery - 1-3 business days
-                  </p>
-                </div>
-              </label>
-              <label className="flex items-center gap-3 p-3 border-2 border-[#E0E0E0] rounded-lg cursor-pointer hover:border-orange">
-                <input
-                  type="radio"
-                  name="shippingMethod"
-                  value="economy"
-                  className="w-4 h-4 text-orange"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-[#000000]">
-                    Economy Delivery - Low-cost, 7-12 business days
-                  </p>
-                </div>
-              </label>
-            </div>
           </div>
 
           {/* Continue to payment button */}

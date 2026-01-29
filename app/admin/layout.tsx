@@ -45,6 +45,12 @@ export default function AdminLayout({
             <NavItem href="/admin/users/admins">Admin Users</NavItem>
           </Section>
 
+          <Section title="Category Management">
+            <NavItem href="/admin/categories">Categories</NavItem>
+            <NavItem href="/admin/attributes">Attributes</NavItem>
+            <NavItem href="/admin/brands">Brands</NavItem>
+          </Section>
+
           <Section title="Approvals">
             <NavItem href="/admin/approvals/buyers">Buyer Approvals</NavItem>
             <NavItem href="/admin/approvals/sellers">Seller Approvals</NavItem>
@@ -55,9 +61,6 @@ export default function AdminLayout({
 
           <Section title="Product Management">
             <NavItem href="/admin/products">All Products</NavItem>
-            <NavItem href="/admin/products/categories">Categories</NavItem>
-            <NavItem href="/admin/products/attributes">Attributes</NavItem>
-            <NavItem href="/admin/products/brands">Brands</NavItem>
           </Section>
 
           <Section title="Order Management">

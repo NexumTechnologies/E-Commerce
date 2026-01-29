@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ConditionalHeader from "@/components/ConditionalHeader";
 import ReactQueryProvider from "@/components/ReactQueryProvider";
-import Footer from "@/components/Footer";
+import ConditionalFooter from "@/components/ConditionalFooter";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,7 +29,7 @@ export default function RootLayout({
         <ReactQueryProvider>
           <ConditionalHeader />
           {children}
-          <Footer />
+          <ConditionalFooter />
         </ReactQueryProvider>
       </body>
     </html>

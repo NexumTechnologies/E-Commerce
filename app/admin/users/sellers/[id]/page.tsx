@@ -1,0 +1,283 @@
+"use client";
+
+import React, { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/lib/axios";
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "-";
+  try {
+    return new Date(value).toLocaleString();
+  } catch (e) {
+    return value as string;
+  }
+}
+
+function initials(name?: string) {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((s) => s.charAt(0).toUpperCase())
+    .slice(0, 2)
+    .join("");
+}
+
+export default function SellerDetailPage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["admin-user", "seller", id],
+    queryFn: async () => {
+      const resp = await api.get(`/users/role/seller/${id}`);
+      return resp.data;
+    },
+    enabled: !!id,
+  });
+
+  const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: "" });
+
+  const toggleMutation = useMutation({
+    mutationFn: async () => {
+      const resp = await api.patch(`/users/${id}/toggle-status`);
+      return resp.data;
+    },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user", "seller", id] });
+      queryClient.setQueryData(["admin-user", "seller", id], (old: any) => {
+        const updated = res?.data || {};
+        return { ...old, data: updated };
+      });
+      setToast({ show: true, message: res?.message || "User status updated" });
+      setTimeout(() => setToast({ show: false, message: "" }), 3000);
+    },
+  });
+
+  const sellerStatusMutation = useMutation({
+    mutationFn: async ({ sellerId, status }: { sellerId: number; status: "approved" | "rejected" }) => {
+      const resp = await api.put("/seller/status", {
+        seller_id: sellerId,
+        verification_status: status,
+      });
+      return resp.data;
+    },
+    onSuccess: (res, variables) => {
+      const updatedSeller = res?.data || {};
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user", "seller", id] });
+      queryClient.setQueryData(["admin-user", "seller", id], (old: any) => {
+        if (!old?.data) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            Seller: {
+              ...(old.data.Seller || {}),
+              ...(updatedSeller || {}),
+            },
+          },
+        };
+      });
+      setToast({
+        show: true,
+        message: res?.message || `Seller ${variables.status} successfully`,
+      });
+      setTimeout(() => setToast({ show: false, message: "" }), 3000);
+    },
+  });
+
+  const user = data?.data;
+  const seller = user?.Seller;
+
+  return (
+    <div className="space-y-6">
+      {toast.show && (
+        <div className="fixed top-6 right-6 z-50">
+          <div className="flex items-center gap-3 bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div className="text-sm font-medium">{toast.message}</div>
+          </div>
+        </div>
+      )}
+
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Seller profile</h1>
+          <p className="text-sm text-gray-500 mt-1">Detailed account and profile information</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.back()} className="text-sm text-gray-600 hover:text-gray-800">← Back</button>
+        </div>
+      </header>
+
+      <div className="bg-white rounded-xl shadow-md p-6">
+        {isLoading ? (
+          <div className="text-center py-12">Loading...</div>
+        ) : error ? (
+          <div className="text-center text-red-600 py-12">Failed to load seller</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex flex-col items-center md:items-start gap-4">
+              <div className="w-36 h-36 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center text-3xl font-semibold text-gray-700">
+                <div>{initials(user?.name)}</div>
+              </div>
+
+              <div className="text-center md:text-left">
+                <div className="text-lg font-bold">{user?.name || "-"}</div>
+                <div className="text-sm text-gray-500">{user?.email || "-"}</div>
+              </div>
+
+              <div className="mt-2">
+                {user?.is_varified ? (
+                  <span className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm">
+                    <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Verified
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => toggleMutation.mutate()}
+                    disabled={toggleMutation.status === "pending"}
+                    className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm disabled:opacity-60"
+                  >
+                    {toggleMutation.status === "pending" ? "Verifying..." : "Verify user"}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <div className="text-xs text-gray-500">Role</div>
+                  <div className="mt-1 font-medium">{user?.role || "-"}</div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="text-xs text-gray-500">Last Login</div>
+                  <div className="mt-1 font-medium">{formatDate(user?.last_login)}</div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="text-xs text-gray-500">Account Created</div>
+                  <div className="mt-1 font-medium">{formatDate(user?.created_at)}</div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="text-xs text-gray-500">Email Verified</div>
+                  <div className="mt-1 font-medium">{user?.is_varified ? "Yes" : "No"}</div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Seller profile</h3>
+                {!seller ? (
+                  <div className="p-4 border rounded-lg text-sm text-gray-500">
+                    No seller profile is linked to this user.
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-4 flex items-center gap-3">
+                      <span className="text-xs text-gray-500">Verification status</span>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                          seller.verification_status === "approved"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : seller.verification_status === "rejected"
+                            ? "bg-red-50 text-red-700"
+                            : "bg-amber-50 text-amber-700"
+                        }`}
+                      >
+                        {seller.verification_status
+                          ? seller.verification_status.charAt(0).toUpperCase() +
+                            seller.verification_status.slice(1)
+                          : "Pending"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-xs text-gray-500">Shop name</div>
+                        <div className="mt-1 font-medium">{seller.shop_name || "-"}</div>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-xs text-gray-500">Business type</div>
+                        <div className="mt-1 font-medium">{seller.business_type || "-"}</div>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-xs text-gray-500">Business email</div>
+                        <div className="mt-1 font-medium">{seller.business_email || "-"}</div>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-xs text-gray-500">Business phone</div>
+                        <div className="mt-1 font-medium">{seller.business_phone || "-"}</div>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-xs text-gray-500">Address</div>
+                        <div className="mt-1 font-medium">{seller.business_address || "-"}</div>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-xs text-gray-500">City / Country</div>
+                        <div className="mt-1 font-medium">{seller.city}, {" "}{seller.country}</div>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-xs text-gray-500">ID card number</div>
+                        <div className="mt-1 font-medium">{seller.id_card_number || "-"}</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      {seller.verification_status !== "approved" && (
+                        <>
+                          <button
+                            onClick={() =>
+                              sellerStatusMutation.mutate({
+                                sellerId: seller.id,
+                                status: "approved",
+                              })
+                            }
+                            disabled={sellerStatusMutation.status === "pending"}
+                            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-60"
+                          >
+                            {sellerStatusMutation.status === "pending"
+                              ? "Updating..."
+                              : "Approve seller"}
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              sellerStatusMutation.mutate({
+                                sellerId: seller.id,
+                                status: "rejected",
+                              })
+                            }
+                            disabled={sellerStatusMutation.status === "pending"}
+                            className="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm disabled:opacity-60"
+                          >
+                            Reject seller
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

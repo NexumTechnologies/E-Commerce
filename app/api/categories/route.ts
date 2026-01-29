@@ -16,21 +16,9 @@ export async function GET(req: NextRequest) {
     await connectDB();
 
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status") || "active";
-    const parent = searchParams.get("parent");
-
+    // keep simple: find all categories (only name stored)
     const query: Record<string, unknown> = {};
-    if (status) query.status = status;
-    if (parent === "root") {
-      query.parent = null;
-    } else if (parent) {
-      query.parent = parent;
-    }
-
-    const categories = await Category.find(query)
-      .sort({ sortOrder: 1, name: 1 })
-      .lean()
-      .exec();
+    const categories = await Category.find(query).sort({ name: 1 }).lean().exec();
 
     return NextResponse.json({ categories });
   } catch (err: unknown) {
@@ -60,38 +48,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, slug, parent, icon, sortOrder, status } = body;
+    const { name } = body;
 
     if (!name) {
-      return NextResponse.json(
-        { message: "Name is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Name is required" }, { status: 400 });
     }
 
-    const finalSlug = slug ? slugify(slug) : slugify(name);
-
-    const existing = await Category.findOne({ slug: finalSlug });
-    if (existing) {
-      return NextResponse.json(
-        { message: "Category slug already exists" },
-        { status: 409 }
-      );
-    }
-
-    const category = await Category.create({
-      name,
-      slug: finalSlug,
-      parent: parent || null,
-      icon,
-      sortOrder: typeof sortOrder === "number" ? sortOrder : 0,
-      status: status || "active",
-    });
-
-    return NextResponse.json(
-      { message: "Category created", category },
-      { status: 201 }
-    );
+    const category = await Category.create({ name });
+    return NextResponse.json({ message: "Category created", category }, { status: 201 });
   } catch (err: unknown) {
     console.error("POST /api/categories error", err);
     return NextResponse.json(

@@ -14,11 +14,14 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
+  const isDashboard = pathname?.startsWith("/seller") || pathname?.startsWith("/buyer");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -168,67 +171,69 @@ export default function Header() {
         </div>
       )}
 
-      {/* Navigation Bar (Desktop Only) */}
-      <div className="hidden lg:block border-b border-gray-100 bg-gray-50">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-8 h-12">
-            <Link
-              href="/browse"
-              className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-orange transition-colors"
-            >
-              <Menu className="h-4 w-4" />
-              <span>Browse All</span>
-            </Link>
+      {/* Navigation Bar (Desktop Only) - hidden on seller/buyer dashboards */}
+      {!isDashboard && (
+        <div className="hidden lg:block border-b border-gray-100 bg-gray-50">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="flex items-center gap-8 h-12">
+              <Link
+                href="/browse"
+                className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-orange transition-colors"
+              >
+                <Menu className="h-4 w-4" />
+                <span>Browse All</span>
+              </Link>
 
-            <Link
-              href="/flash-sales"
-              className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
-            >
-              Flash Sales
-            </Link>
+              <Link
+                href="/flash-sales"
+                className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
+              >
+                Flash Sales
+              </Link>
 
-            <Link
-              href="/best-sellers"
-              className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
-            >
-              Best Sellers
-            </Link>
+              <Link
+                href="/best-sellers"
+                className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
+              >
+                Best Sellers
+              </Link>
 
-            <Link
-              href="/custom-orders"
-              className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
-            >
-              Custom Orders
-            </Link>
+              <Link
+                href="/custom-orders"
+                className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
+              >
+                Custom Orders
+              </Link>
 
-            <Link
-              href="/on-demand"
-              className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
-            >
-              On-Demand
-            </Link>
+              <Link
+                href="/on-demand"
+                className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
+              >
+                On-Demand
+              </Link>
 
-            <div className="flex-1" />
+              <div className="flex-1" />
 
-            <Link
-              href="/suppliers"
-              className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
-            >
-              Find Suppliers
-            </Link>
+              <Link
+                href="/suppliers"
+                className="text-sm font-medium text-gray-700 hover:text-orange transition-colors"
+              >
+                Find Suppliers
+              </Link>
 
-            <Link
-              href="/auth/seller/signin"
-              className="text-sm font-semibold text-orange hover:text-blue transition-colors"
-            >
-              Become a Vendor
-            </Link>
-          </nav>
+              <Link
+                href="/auth/seller/signin"
+                className="text-sm font-semibold text-orange hover:text-blue transition-colors"
+              >
+                Become a Vendor
+              </Link>
+            </nav>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mobile Menu Drawer */}
-      {isMobileMenuOpen && (
+      {isMobileMenuOpen && !isDashboard && (
         <>
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
