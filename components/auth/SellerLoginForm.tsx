@@ -35,6 +35,22 @@ export default function SellerLoginForm() {
         return;
       }
 
+      // Persist auth info for global header/cart usage.
+      try {
+        if (typeof window !== "undefined") {
+          if (data?.token) {
+            localStorage.setItem("token", data.token);
+          }
+          if (data?.user) {
+            localStorage.setItem("user", JSON.stringify(data.user));
+          }
+
+          window.dispatchEvent(new Event("auth-change"));
+        }
+      } catch (err) {
+        // Ignore persistence errors; don't block login.
+      }
+
       // Redirect based on user role or to seller dashboard
       router.push("/seller/dashboard");
       router.refresh();

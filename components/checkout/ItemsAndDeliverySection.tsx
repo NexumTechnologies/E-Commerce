@@ -1,7 +1,9 @@
 "use client";
 
-import { Package } from "lucide-react";
+import { Package, X } from "lucide-react";
 import Image from "next/image";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 
 interface ItemsAndDeliverySectionProps {
@@ -17,6 +19,19 @@ export default function ItemsAndDeliverySection({
   items,
   isLoading,
 }: ItemsAndDeliverySectionProps) {
+  const queryClient = useQueryClient();
+
+  const removeItemMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      await api.delete(`/addToCart/${id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["buyer-cart"] });
+    },
+  });
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm">
       {/* Header */}
@@ -50,6 +65,24 @@ export default function ItemsAndDeliverySection({
               const imageSrc = Array.isArray(rawImage)
                 ? rawImage[0]
                 : rawImage || "/detail-product.jpg";
+              const listing = (product as any).listing;
+              const listingPrice =
+                listing && listing.is_listed && listing.display_price != null
+                  ? Number(listing.display_price)
+                  : undefined;
+
+              const safeQuantity = Number(item.quantity ?? 1) || 1;
+              const baseUnit =
+                typeof item.unit_price === "number" && !Number.isNaN(item.unit_price)
+                  ? item.unit_price
+                  : undefined;
+              const fallbackUnit = (Number(item.total_price ?? 0) / safeQuantity) || 0;
+              const unitPrice =
+                typeof listingPrice === "number" && !Number.isNaN(listingPrice)
+                  ? listingPrice
+                  : typeof baseUnit === "number"
+                    ? baseUnit
+                    : fallbackUnit;
 
               return (
                 <div
@@ -77,20 +110,33 @@ export default function ItemsAndDeliverySection({
                       Quantity: {item.quantity}
                     </p>
                     <p className="text-xs text-[#6B6B6B] mb-3">
-                      Unit price: {product.price} AED
+                      Unit price: {unitPrice} AED
                     </p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-semibold text-[#000000]">
                         Line total: {item.total_price} AED
                       </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onActivate}
-                        className="text-orange"
-                      >
-                        Change items
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={onActivate}
+                          className="text-orange"
+                        >
+                          Change items
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            !removeItemMutation.isPending &&
+                            removeItemMutation.mutate(item.id as number)
+                          }
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#E0E0E0] text-[#6B6B6B] hover:bg-[#F5F5F5]"
+                          aria-label="Remove item from cart"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

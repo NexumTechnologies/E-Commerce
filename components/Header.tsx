@@ -9,19 +9,48 @@ import {
   ShoppingCart,
   Briefcase,
   LogIn,
+  LogOut,
   Globe,
   MapPin,
   ChevronDown,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import api from "@/lib/axios";
+
+type HeaderUser = {
+  id?: string;
+  name?: string;
+  email?: string;
+  role?: string;
+  avatarUrl?: string;
+};
 
 export default function Header() {
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [user, setUser] = useState<HeaderUser | null>(null);
+  const [cartCount, setCartCount] = useState<number | null>(null);
   const pathname = usePathname();
-  const isDashboard = pathname?.startsWith("/seller") || pathname?.startsWith("/buyer");
+  const isDashboard =
+    pathname?.startsWith("/seller") || pathname?.startsWith("/buyer");
+
+  const handleLogout = () => {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.dispatchEvent(new Event("auth-change"));
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    setUser(null);
+    router.push("/");
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +59,76 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Load auth user from localStorage and react to auth changes.
+  useEffect(() => {
+    const loadUserFromStorage = () => {
+      if (typeof window === "undefined") return;
+      try {
+        const raw = localStorage.getItem("user");
+        if (!raw) {
+          setUser(null);
+          return;
+        }
+        const parsed = JSON.parse(raw) as HeaderUser;
+        setUser(parsed || null);
+      } catch {
+        setUser(null);
+      }
+    };
+
+    loadUserFromStorage();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (!event.key || event.key === "user" || event.key === "token") {
+        loadUserFromStorage();
+      }
+    };
+
+    const handleAuthChange = () => {
+      loadUserFromStorage();
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", handleStorage);
+      // Custom event fired from login/logout handlers.
+      window.addEventListener("auth-change", handleAuthChange as any);
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("storage", handleStorage);
+        window.removeEventListener("auth-change", handleAuthChange as any);
+      }
+    };
+  }, []);
+
+  // Fetch cart count for the logged-in user using the same API as buyer cart.
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      if (typeof window === "undefined") return;
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setCartCount(null);
+        return;
+      }
+
+      try {
+        const res = await api.get("/addToCart", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const cart = res.data?.data || res.data || {};
+        const items = cart.items || [];
+        const total =
+          typeof cart.totalItems === "number" ? cart.totalItems : items.length;
+        setCartCount(total);
+      } catch {
+        setCartCount(null);
+      }
+    };
+
+    fetchCartCount();
+  }, [user]);
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -41,6 +140,25 @@ export default function Header() {
       document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
+
+  const profileHref = (() => {
+    if (!user?.role) return "/user/dashboard";
+    if (user.role === "buyer") return "/buyer/dashboard";
+    if (user.role === "seller") return "/seller/dashboard";
+    if (user.role === "admin") return "/admin/dashboard";
+    return "/user/dashboard";
+  })();
+
+  const userInitials = (() => {
+    const source = user?.name || user?.email || "";
+    if (!source) return "";
+    const parts = source.trim().split(/\s+/);
+    if (parts.length === 1) {
+      const [single] = parts;
+      return single.slice(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+  })();
 
   return (
     <header
@@ -100,7 +218,7 @@ export default function Header() {
               {/* Location (Desktop) */}
               <div className="hidden lg:flex items-center gap-2 text-sm text-gray-700 hover:text-orange transition-colors cursor-pointer group">
                 <MapPin className="h-4 w-4 text-orange" />
-                <span className="font-medium">United States</span>
+                <span className="font-medium">UAE</span>
                 <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
 
@@ -109,40 +227,77 @@ export default function Header() {
                 <Globe className="h-5 w-5 text-orange" />
               </button>
 
-
               {/* Cart */}
               <Link
                 href="/checkout"
                 className="relative text-gray-700 hover:text-orange transition-colors"
               >
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange text-white text-xs rounded-full flex items-center justify-center">
-                  2
+                <span className="absolute -top-1 -right-1 min-w-[1rem] h-4 px-[2px] bg-orange text-white text-[10px] rounded-full flex items-center justify-center">
+                  {cartCount ?? 0}
                 </span>
               </Link>
 
-              {/* Business Registration */}
-              <Link
-                href="/auth/register"
-                className="flex items-center gap-2 text-gray-700 hover:text-orange transition-colors"
-              >
-                <Briefcase className="h-6 w-6" />
-                <span className="hidden xl:block text-sm font-medium">
-                  Business Registration
-                </span>
-              </Link>
+              {/* Auth / Profile */}
+              {user ? (
+                <div className="hidden lg:flex items-center gap-3">
+                  <Link
+                    href={profileHref}
+                    className="flex items-center gap-2 rounded-full bg-gray-50 px-2.5 py-1 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="relative h-8 w-8 rounded-full overflow-hidden bg-blue text-white flex items-center justify-center text-xs font-semibold">
+                      {user.avatarUrl ? (
+                        <Image
+                          src={user.avatarUrl}
+                          alt={user.name || "Profile"}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span>{userInitials}</span>
+                      )}
+                    </div>
+                    <div className="hidden xl:flex flex-col items-start leading-tight max-w-[120px]">
+                      <span className="text-[11px] text-gray-500">Hi,</span>
+                      <span className="text-sm font-medium text-gray-900 truncate">
+                        {user.name || user.email}
+                      </span>
+                    </div>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-orange transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span className="hidden xl:inline">Logout</span>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Business Registration */}
+                  <Link
+                    href="/auth/register"
+                    className="flex items-center gap-2 text-gray-700 hover:text-orange transition-colors"
+                  >
+                    <Briefcase className="h-6 w-6" />
+                    <span className="hidden xl:block text-sm font-medium">
+                      Business Registration
+                    </span>
+                  </Link>
 
-              
-
-
-              {/* Login */}
-              <Link
-                href="/auth/signin"
-                className="flex items-center gap-2 text-gray-700 hover:text-orange transition-colors"
-              >
-                <LogIn className="h-6 w-6" />
-                <span className="hidden xl:block text-sm font-medium">Login</span>
-              </Link>
+                  {/* Login */}
+                  <Link
+                    href="/auth/signin"
+                    className="flex items-center gap-2 text-gray-700 hover:text-orange transition-colors"
+                  >
+                    <LogIn className="h-6 w-6" />
+                    <span className="hidden xl:block text-sm font-medium">
+                      Login
+                    </span>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -172,7 +327,7 @@ export default function Header() {
       )}
 
       {/* Navigation Bar (Desktop Only) - hidden on seller/buyer dashboards */}
-      {!isDashboard && (
+      {/* {!isDashboard && (
         <div className="hidden lg:block border-b border-gray-100 bg-gray-50">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex items-center gap-8 h-12">
@@ -230,17 +385,16 @@ export default function Header() {
             </nav>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Mobile Menu Drawer */}
-      {isMobileMenuOpen && !isDashboard && (
+      {/* {isMobileMenuOpen && !isDashboard && (
         <>
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
           <div className="fixed top-0 left-0 h-full w-80 bg-white z-50 lg:hidden shadow-2xl overflow-y-auto">
-            {/* Drawer Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-orange">
               <span className="text-white text-lg font-bold">Menu</span>
               <button
@@ -251,9 +405,8 @@ export default function Header() {
               </button>
             </div>
 
-            {/* Drawer Content */}
+            
             <div className="p-4">
-              {/* User Section: Business Registration & Login */}
               <div className="mb-6 pb-6 border-b border-gray-200 space-y-2">
                 <Link
                   href="/auth/seller/register"
@@ -284,7 +437,6 @@ export default function Header() {
                 </Link>
               </div>
 
-              {/* Navigation Links */}
               <nav className="space-y-1">
                 <Link
                   href="/browse"
@@ -377,7 +529,7 @@ export default function Header() {
             </div>
           </div>
         </>
-      )}
+      )} */}
     </header>
   );
 }

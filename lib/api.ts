@@ -57,3 +57,9 @@ export async function createBuyerProfile(payload: any) {
     body: JSON.stringify(payload),
   });
 }
+
+export async function getAdminDashboardStats() {
+  return request("/users/stats/dashboard", {
+    method: "GET",
+  });
+}

@@ -24,24 +24,47 @@ export default function LoginForm() {
     },
 
     onSuccess: (resData: any) => {
-      // API returns { success, message, data: { role, is_varified, ... } }
-      const payload = resData?.data || {};
-      console.log("here", payload);
+      // API may return either { success, message, data: {...} } from backend
+      // or { message, user, token } from Next.js /api/auth/login.
+      const payload = resData?.data || resData?.user || {};
 
-      // If user is not verified (and not an admin), send them to verification page
-      if (payload.is_varified === false && payload.role !== "admin") {
+      // Persist auth info for header/cart (client-only).
+      try {
+        if (resData?.token || (resData?.data && resData.data.token)) {
+          const token = resData.token || resData.data.token;
+          if (typeof window !== "undefined" && token) {
+            localStorage.setItem("token", token);
+          }
+        }
+
+        if (typeof window !== "undefined" && payload && Object.keys(payload).length > 0) {
+          localStorage.setItem("user", JSON.stringify(payload));
+        }
+
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("auth-change"));
+        }
+      } catch (e) {
+        // Swallow persistence errors; don't block login flow.
+      }
+
+      const role = (payload as any).role;
+
+      // If user is not verified (and not an admin or user), send them to verification page
+      if ((payload as any).is_varified === false && role !== "admin" && role !== "user") {
         router.push("/auth/verification");
         router.refresh();
         return;
       }
 
-      const role = payload.role;
       if (role === "admin") {
         router.push("/admin/dashboard");
       } else if (role === "seller") {
         router.push("/seller/dashboard");
       } else if (role === "buyer") {
         router.push("/buyer/dashboard");
+      } else if (role === "user") {
+        router.push("/");
       } else {
         router.push("/");
       }

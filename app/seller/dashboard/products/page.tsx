@@ -54,6 +54,38 @@ export default function SellerProductsPage() {
   const categories =
     categoriesData?.data?.items || categoriesData?.categories || categoriesData || [];
 
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
+      const token = localStorage.getItem("token");
+      const res = await api.put(
+        `/product/${id}`,
+        { is_active },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["seller-products"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const token = localStorage.getItem("token");
+      const res = await api.delete(`/product/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      setSelectedProduct(null);
+      setSelectedImageIndex(0);
+      queryClient.invalidateQueries({ queryKey: ["seller-products"] });
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: async () => {
       const token = localStorage.getItem("token");
@@ -223,11 +255,18 @@ export default function SellerProductsPage() {
                     <h3 className="font-semibold text-slate-900 text-sm line-clamp-2">
                       {product.name}
                     </h3>
-                    {product.Category?.name && (
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 whitespace-nowrap">
-                        {product.Category.name}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {product.Category?.name && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 whitespace-nowrap">
+                          {product.Category.name}
+                        </span>
+                      )}
+                      {product.is_active === false && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-700 whitespace-nowrap">
+                          Disabled
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {product.description && (
@@ -660,6 +699,38 @@ export default function SellerProductsPage() {
                 >
                   Edit product
                 </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="rounded-md border px-3 py-1.5 text-yellow-700 border-yellow-500 hover:bg-yellow-50 font-medium"
+                    disabled={toggleStatusMutation.isPending}
+                    onClick={() => {
+                      if (!selectedProduct) return;
+                      const next = !selectedProduct.is_active;
+                      setSelectedProduct({ ...selectedProduct, is_active: next });
+                      toggleStatusMutation.mutate({
+                        id: selectedProduct.id,
+                        is_active: next,
+                      });
+                    }}
+                  >
+                    {selectedProduct?.is_active === false ? "Enable" : "Disable"}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-md border px-3 py-1.5 text-red-600 border-red-500 hover:bg-red-50 font-medium"
+                    disabled={deleteMutation.isPending}
+                    onClick={() => {
+                      if (!selectedProduct) return;
+                      if (!window.confirm("Are you sure you want to delete this product?")) {
+                        return;
+                      }
+                      deleteMutation.mutate(selectedProduct.id);
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={() => {

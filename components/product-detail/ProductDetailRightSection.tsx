@@ -41,10 +41,24 @@ export default function ProductDetailRightSection() {
   )?.name;
 
   const handleStartOrder = () => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      router.push("/auth/signin");
+      return;
+    }
     router.push("/checkout");
   };
 
   const handleAddToCart = () => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      router.push("/auth/signin");
+      return;
+    }
+
+    // TODO: wire actual add-to-cart API call using selected variant
     console.log("Add to cart clicked", {
       selectedColor,
       variant: selectedVariantName,

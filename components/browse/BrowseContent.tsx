@@ -1,8 +1,17 @@
 "use client";
 
 import ProductCard from "@/components/ui/ProductCard";
-import { LayoutGrid, List, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  LayoutGrid,
+  List,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/axios";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,109 +19,118 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const products = [
-  {
-    id: "1",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "20,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 1240,
-    discount: 20,
-    moq: "Min. Order: 5 pieces"
-  },
-  {
-    id: "2",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "18,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 892,
-    discount: 11,
-    moq: "Min. Order: 10 pieces"
-  },
-  {
-    id: "3",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "22,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 2156,
-    discount: 27,
-    moq: "Min. Order: 2 pieces"
-  },
-  {
-    id: "4",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "19,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 567,
-    discount: 16,
-    moq: "Min. Order: 50 pieces"
-  },
-  {
-    id: "5",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "21,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 3421,
-    discount: 24,
-    moq: "Min. Order: 1 piece"
-  },
-  {
-    id: "6",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "17,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 743,
-    discount: 6,
-    moq: "Min. Order: 100 pieces"
-  },
-  {
-    id: "7",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "23,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 1890,
-    discount: 30,
-    moq: "Min. Order: 5 pieces"
-  },
-  {
-    id: "8",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "18,500 EGP",
-    image: "/dummy-product.png",
-    reviews: 1123,
-    discount: 14,
-    moq: "Min. Order: 20 pieces"
-  },
-];
-
 const ITEMS_PER_PAGE = 6;
 
+async function fetchBrowseProducts(
+  categoryId: string | null,
+  minPriceParam: string | null,
+  maxPriceParam: string | null,
+) {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  // If a category is selected from the homepage, hit the category-specific endpoint
+  const endpoint = categoryId ? `/product/category/${categoryId}` : "/product";
+
+  const res = await api.get(endpoint, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+
+  const data = res.data;
+  const items =
+    data?.data?.items ||
+    data?.products ||
+    data?.data ||
+    data?.items ||
+    data ||
+    [];
+
+  const minPrice = minPriceParam ? Number(minPriceParam) : null;
+  const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
+
+  // Normalize into shape expected by ProductCard
+  const normalized = items.map((product: any) => {
+    const images: string[] = Array.isArray(product.image_url)
+      ? product.image_url
+      : product.image_url
+        ? [product.image_url]
+        : [];
+
+    const image = images[0] || "/dummy-product.png";
+
+    const basePrice = Number(product.price) || 0;
+    const customerPriceRaw =
+      product && product.customer_price != null
+        ? Number(product.customer_price)
+        : null;
+    const listingPrice =
+      customerPriceRaw != null && !Number.isNaN(customerPriceRaw)
+        ? customerPriceRaw
+        : product?.listing?.display_price != null &&
+            !Number.isNaN(Number(product.listing.display_price))
+          ? Number(product.listing.display_price)
+          : basePrice;
+
+    const discountPrice =
+      listingPrice > 0 ? `${listingPrice} AED` : `${basePrice} AED`;
+
+    const cutPrice = undefined;
+
+    return {
+      id: String(product.id),
+      name: product.name || "Product",
+      image,
+      discountPrice,
+      cutPrice,
+      // Keep numeric values for client-side filtering/sorting
+      _numericPrice: listingPrice || basePrice,
+      // Optional fields (rating, reviews, discount, moq) can be wired later
+    };
+  });
+
+  // Apply client-side price filtering based on shown (listing) price
+  return normalized.filter((p: any) => {
+    const price = typeof p._numericPrice === "number" ? p._numericPrice : null;
+    if (price == null) return true;
+    if (minPrice != null && price < minPrice) return false;
+    if (maxPrice != null && price > maxPrice) return false;
+    return true;
+  });
+}
+
 export default function BrowseContent() {
+  const searchParams = useSearchParams();
+  const categoryId = searchParams.get("category");
+  const minPriceParam = searchParams.get("minPrice");
+  const maxPriceParam = searchParams.get("maxPrice");
+
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("Recommended");
   const [currentPage, setCurrentPage] = useState(1);
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["browse-products", { categoryId, minPriceParam, maxPriceParam }],
+    queryFn: () =>
+      fetchBrowseProducts(categoryId, minPriceParam, maxPriceParam),
+  });
 
-  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(products.length / ITEMS_PER_PAGE));
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentProducts = products.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const currentProducts = products.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE,
+  );
 
-  const sortOptions = ["Recommended", "Latest", "Price: Low to High", "Price: High to Low", "Rating"];
+  const sortOptions = [
+    "Recommended",
+    "Latest",
+    "Price: Low to High",
+    "Price: High to Low",
+    "Rating",
+  ];
 
   return (
     <div className="flex-1">
@@ -120,7 +138,22 @@ export default function BrowseContent() {
       <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <p className="text-sm text-gray-600">
-            Showing <span className="font-bold text-gray-900">{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, products.length)}</span> of {products.length} products
+            {isLoading ? (
+              "Loading products..."
+            ) : error ? (
+              "Failed to load products."
+            ) : products.length ? (
+              <>
+                Showing{" "}
+                <span className="font-bold text-gray-900">
+                  {startIndex + 1}-
+                  {Math.min(startIndex + ITEMS_PER_PAGE, products.length)}
+                </span>{" "}
+                of {products.length} products
+              </>
+            ) : (
+              "No products found."
+            )}
           </p>
         </div>
 
@@ -135,13 +168,18 @@ export default function BrowseContent() {
                   <ChevronDown className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px] bg-white border border-gray-100 rounded-xl shadow-xl p-1 z-50">
+              <DropdownMenuContent
+                align="end"
+                className="w-[200px] bg-white border border-gray-100 rounded-xl shadow-xl p-1 z-50"
+              >
                 {sortOptions.map((option) => (
                   <DropdownMenuItem
                     key={option}
                     onClick={() => setSortBy(option)}
                     className={`px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
-                      sortBy === option ? "bg-blue/5 text-blue font-semibold" : "text-gray-600 hover:bg-gray-50"
+                      sortBy === option
+                        ? "bg-blue/5 text-blue font-semibold"
+                        : "text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     {option}
@@ -153,13 +191,13 @@ export default function BrowseContent() {
 
           {/* View Toggle */}
           <div className="hidden sm:flex items-center bg-gray-50 p-1 rounded-xl">
-            <button 
+            <button
               onClick={() => setViewMode("grid")}
               className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-blue shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
             >
               <LayoutGrid className="h-5 w-5" />
             </button>
-            <button 
+            <button
               onClick={() => setViewMode("list")}
               className={`p-2 rounded-lg transition-all ${viewMode === "list" ? "bg-white text-blue shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
             >
@@ -170,35 +208,54 @@ export default function BrowseContent() {
       </div>
 
       {/* Product Grid */}
-      <div className={`grid gap-6 ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}>
-        {currentProducts.map((product) => (
-          <ProductCard 
-            key={product.id}
-            {...product}
-            className={viewMode === "list" ? "flex flex-row h-auto" : ""}
-          />
-        ))}
+      <div
+        className={`grid gap-6 ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}
+      >
+        {isLoading && (
+          <div className="col-span-full text-center text-gray-500">
+            Loading products...
+          </div>
+        )}
+        {error && !isLoading && (
+          <div className="col-span-full text-center text-red-500">
+            Failed to load products.
+          </div>
+        )}
+        {!isLoading && !error && !currentProducts.length && (
+          <div className="col-span-full text-center text-gray-500">
+            No products found.
+          </div>
+        )}
+        {!isLoading &&
+          !error &&
+          currentProducts.map((product: any) => (
+            <ProductCard
+              key={product.id}
+              {...product}
+              className={viewMode === "list" ? "flex flex-row h-auto" : ""}
+            />
+          ))}
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {products.length > 0 && totalPages > 1 && (
         <div className="mt-12 flex justify-center">
           <nav className="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
               className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-100 text-gray-600 hover:border-blue hover:text-blue transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            
+
             {[...Array(totalPages)].map((_, i) => (
               <button
                 key={i + 1}
                 onClick={() => setCurrentPage(i + 1)}
                 className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all font-bold ${
-                  currentPage === i + 1 
-                    ? "bg-blue text-white shadow-lg shadow-blue/20" 
+                  currentPage === i + 1
+                    ? "bg-blue text-white shadow-lg shadow-blue/20"
                     : "border border-gray-100 text-gray-600 hover:border-blue hover:text-blue"
                 }`}
               >
@@ -206,8 +263,10 @@ export default function BrowseContent() {
               </button>
             ))}
 
-            <button 
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
               disabled={currentPage === totalPages}
               className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-100 text-gray-600 hover:border-blue hover:text-blue transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             >
@@ -219,4 +278,3 @@ export default function BrowseContent() {
     </div>
   );
 }
-

@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/axios";
 import { ChevronRight, ChevronLeft, Star, Award, ArrowRight, TrendingUp } from "lucide-react";
 
 interface Product {
@@ -14,53 +16,45 @@ interface Product {
   reviews?: number;
 }
 
-const products: Product[] = [
-  {
-    id: "1",
-    image: "/top-ranking-1.png",
-    name: "Dorns",
-    category: "Hot selling",
-    rating: 4.8,
-    reviews: 1240,
-  },
-  {
-    id: "2",
-    image: "/top-ranking-2.png",
-    name: "Dorns",
-    category: "Hot selling",
-    rating: 4.9,
-    reviews: 2156,
-  },
-  {
-    id: "3",
-    image: "/top-ranking-3.png",
-    name: "Dorns",
-    category: "Hot selling",
-    rating: 4.7,
-    reviews: 892,
-  },
-  {
-    id: "4",
-    image: "/top-ranking-4.png",
-    name: "Dorns",
-    category: "Hot selling",
-    rating: 5.0,
-    reviews: 3421,
-  },
-  {
-    id: "5",
-    image: "/top-ranking-5.png",
-    name: "Dorns",
-    category: "Hot selling",
-    rating: 4.6,
-    reviews: 567,
-  },
-];
+async function fetchTopRanking(): Promise<Product[]> {
+  const res = await api.get("/product/public/listed", { params: { limit: 10 } });
+  const data = res.data;
+  const items: any[] =
+    data?.data?.items || data?.data || data?.products || data?.items || data || [];
+
+  return items.map((product: any) => {
+    const images: string[] = Array.isArray(product.image_url)
+      ? product.image_url
+      : product.image_url
+        ? [product.image_url]
+        : [];
+
+    const image = images[0] || "/top-ranking-1.png";
+    const name = product.name || "Product";
+    const categoryName = product.Category?.name || "Listed product";
+
+    return {
+      id: String(product.id),
+      image,
+      name,
+      category: categoryName,
+    } as Product;
+  });
+}
 
 export default function TopRankingSection() {
   const [isHovered, setIsHovered] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useQuery<Product[]>({
+    queryKey: ["home-listed-products", "top-ranking"],
+    queryFn: fetchTopRanking,
+  });
 
   const visibleCards = 5; // Number of cards visible at a time
 
@@ -124,10 +118,27 @@ export default function TopRankingSection() {
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
-              <div className="flex gap-4 sm:gap-6 overflow-x-auto lg:overflow-hidden scrollbar-hide pb-4">
-                {products
-                  .slice(currentIndex, currentIndex + visibleCards)
-                  .map((product, index) => (
+              {isLoading && (
+                <div className="py-8 text-center text-sm text-gray-500">
+                  Loading top ranking products...
+                </div>
+              )}
+              {!isLoading && error && (
+                <div className="py-8 text-center text-sm text-red-500">
+                  Failed to load top ranking products.
+                </div>
+              )}
+              {!isLoading && !error && products.length === 0 && (
+                <div className="py-8 text-center text-sm text-gray-500">
+                  No listed products available yet.
+                </div>
+              )}
+
+              {products.length > 0 && (
+                <div className="flex gap-4 sm:gap-6 overflow-x-auto lg:overflow-hidden scrollbar-hide pb-4">
+                  {products
+                    .slice(currentIndex, currentIndex + visibleCards)
+                    .map((product, index) => (
                     <Link
                       key={product.id}
                       href={`/products/${product.id}`}
@@ -219,8 +230,9 @@ export default function TopRankingSection() {
                         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-blue-500/10 transition-all duration-300 pointer-events-none" />
                       </div>
                     </Link>
-                  ))}
-              </div>
+                    ))}
+                  </div>
+                  )}
 
               {/* Navigation Arrows */}
               {isHovered && products.length > visibleCards && (

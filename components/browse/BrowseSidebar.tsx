@@ -1,19 +1,20 @@
 "use client";
 
-import { 
-  Shirt, 
-  Monitor, 
-  Shield, 
-  Sparkles, 
-  Gem, 
-  Home, 
+import {
+  Shirt,
+  Monitor,
+  Shield,
+  Sparkles,
+  Gem,
+  Home,
   Footprints,
   Filter,
   ChevronRight,
-  Star
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/axios";
 
 interface Category {
   id: string;
@@ -21,26 +22,47 @@ interface Category {
   icon: React.ReactNode;
 }
 
-const categories: Category[] = [
-  { id: "1", name: "Apparel & Accessories", icon: <Shirt className="h-5 w-5" /> },
-  { id: "2", name: "Consumer Electronics", icon: <Monitor className="h-5 w-5" /> },
-  { id: "3", name: "Sports & Entertainment", icon: <Shield className="h-5 w-5" /> },
-  { id: "4", name: "Beauty & Personal Care", icon: <Sparkles className="h-5 w-5" /> },
-  { id: "5", name: "Jewelry & Watches", icon: <Gem className="h-5 w-5" /> },
-  { id: "6", name: "Home & Garden", icon: <Home className="h-5 w-5" /> },
-  { id: "7", name: "Footwear & Accessories", icon: <Footprints className="h-5 w-5" /> },
-];
+const CATEGORY_ICONS = [Shirt, Monitor, Shield, Sparkles, Gem, Home, Footprints];
+
+async function fetchBrowseCategories(): Promise<Category[]> {
+  const res = await api.get("/category");
+  const data = res.data;
+
+  const raw =
+    data?.data?.items || data?.categories || (Array.isArray(data) ? data : []);
+
+  return raw.map((cat: any, index: number) => {
+    const IconComp = CATEGORY_ICONS[index % CATEGORY_ICONS.length];
+    return {
+      id: String(cat.id ?? cat._id ?? index),
+      name: cat.name ?? "Category",
+      icon: <IconComp className="h-5 w-5" />,
+    };
+  });
+}
 
 export default function BrowseSidebar() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const categoryParam = searchParams.get("category");
+  const minPriceParam = searchParams.get("minPrice");
+  const maxPriceParam = searchParams.get("maxPrice");
   
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam);
+  const [minPrice, setMinPrice] = useState<string>(minPriceParam || "");
+  const [maxPrice, setMaxPrice] = useState<string>(maxPriceParam || "");
+
+  const { data: categories = [], isLoading } = useQuery({
+    // Reuse the same key as home categories to share cache
+    queryKey: ["home-categories"],
+    queryFn: fetchBrowseCategories,
+  });
 
   useEffect(() => {
     setSelectedCategory(categoryParam);
-  }, [categoryParam]);
+    setMinPrice(minPriceParam || "");
+    setMaxPrice(maxPriceParam || "");
+  }, [categoryParam, minPriceParam, maxPriceParam]);
 
   const handleCategoryClick = (id: string) => {
     const newId = selectedCategory === id ? null : id;
@@ -56,6 +78,21 @@ export default function BrowseSidebar() {
     router.push(`/browse?${params.toString()}`);
   };
 
+  const handleApplyPriceFilter = () => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (minPrice) params.set("minPrice", minPrice);
+    else params.delete("minPrice");
+
+    if (maxPrice) params.set("maxPrice", maxPrice);
+    else params.delete("maxPrice");
+
+    // Reset page when filters change
+    params.delete("page");
+
+    router.push(`/browse?${params.toString()}`);
+  };
+
   return (
     <aside className="w-full lg:w-72 space-y-8">
       {/* Categories */}
@@ -64,8 +101,16 @@ export default function BrowseSidebar() {
           <Filter className="h-5 w-5 text-orange" />
           <h2 className="font-bold text-gray-900">Categories</h2>
         </div>
-        
+
         <nav className="space-y-1">
+          {isLoading && !categories.length && (
+            <div className="text-sm text-gray-500">Loading categories...</div>
+          )}
+
+          {!isLoading && !categories.length && (
+            <div className="text-sm text-gray-500">No categories found.</div>
+          )}
+
           {categories.map((category) => (
             <button
               key={category.id}
@@ -97,43 +142,30 @@ export default function BrowseSidebar() {
             <input 
               type="number" 
               placeholder="Min" 
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
               className="w-full h-10 px-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue/20 focus:border-blue transition-all"
             />
             <span className="text-gray-400">-</span>
             <input 
               type="number" 
               placeholder="Max" 
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
               className="w-full h-10 px-3 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue/20 focus:border-blue transition-all"
             />
           </div>
-          <button className="w-full py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-orange transition-colors">
+          <button
+            type="button"
+            onClick={handleApplyPriceFilter}
+            className="w-full py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-orange transition-colors"
+          >
             Apply Filter
           </button>
         </div>
       </div>
 
-      {/* Ratings */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <h2 className="font-bold text-gray-900 mb-6">Ratings</h2>
-        <div className="space-y-2">
-          {[5, 4, 3, 2, 1].map((rating) => (
-            <label key={rating} className="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-blue focus:ring-blue" />
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star 
-                    key={i} 
-                    className={`h-4 w-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`} 
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-gray-500 group-hover:text-gray-900 transition-colors">
-                {rating === 5 ? "" : "& Up"}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
+      {/* Ratings removed as requested */}
     </aside>
   );
 }

@@ -53,6 +53,16 @@ export default function ProductDetailPage() {
 
   const product = data?.data || data?.product || data || null;
 
+  const basePrice = product ? Number(product.price) || 0 : 0;
+  const customerPriceRaw = product && product.customer_price != null
+    ? Number(product.customer_price)
+    : null;
+  const listingPrice =
+    (customerPriceRaw != null && !Number.isNaN(customerPriceRaw) ? customerPriceRaw : null) ??
+    (product && product.listing && product.listing.display_price != null
+      ? Number(product.listing.display_price)
+      : basePrice);
+
   const images: string[] = product
     ? Array.isArray(product.image_url)
       ? product.image_url
@@ -167,8 +177,10 @@ export default function ProductDetailPage() {
                   <div className="text-xs uppercase tracking-wide text-slate-500">
                     Price
                   </div>
-                  <div className="text-2xl font-semibold text-emerald-700">
-                    ${product.price}
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-semibold text-emerald-700">
+                      {listingPrice} AED
+                    </span>
                   </div>
                 </div>
 
@@ -216,12 +228,20 @@ export default function ProductDetailPage() {
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={() => {
+                    const token =
+                      typeof window !== "undefined"
+                        ? localStorage.getItem("token")
+                        : null;
+                    if (!token) {
+                      router.push("/auth/signin");
+                      return;
+                    }
                     addToCartMutation.mutate({
                       product_id: product.id,
                       quantity,
-                    })
-                  }
+                    });
+                  }}
                   disabled={addToCartMutation.isLoading || product.quantity === 0}
                   className="flex-1 inline-flex items-center justify-center rounded-full border border-blue-600 text-blue-600 text-sm py-2.5 hover:bg-blue-50 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
@@ -230,7 +250,17 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   disabled={product.quantity === 0}
-                  onClick={() => router.push("/checkout")}
+                  onClick={() => {
+                    const token =
+                      typeof window !== "undefined"
+                        ? localStorage.getItem("token")
+                        : null;
+                    if (!token) {
+                      router.push("/auth/signin");
+                      return;
+                    }
+                    router.push("/checkout");
+                  }}
                   className="flex-1 inline-flex items-center justify-center rounded-full bg-blue-600 text-white text-sm py-2.5 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Buy now

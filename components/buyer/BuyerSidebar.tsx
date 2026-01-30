@@ -12,6 +12,11 @@ export default function BuyerSidebar() {
     try {
       sessionStorage.clear();
       localStorage.removeItem("registration");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("auth-change"));
+      }
     } catch (e) {}
     router.push("/auth/signin");
   };

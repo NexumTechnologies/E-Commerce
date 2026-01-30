@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/axios";
 import {
   Shirt,
   Monitor,
@@ -19,7 +21,7 @@ interface Category {
   id: string;
   name: string;
   icon: React.ReactNode;
-  count: string;
+  count?: string;
 }
 
 interface TrendingSearch {
@@ -28,51 +30,8 @@ interface TrendingSearch {
   image: string;
   badge?: string;
 }
-
-const categories: Category[] = [
-  {
-    id: "1",
-    name: "Apparel & Accessories",
-    icon: <Shirt className="h-6 w-6" />,
-    count: "12.5K+",
-  },
-  {
-    id: "2",
-    name: "Consumer Electronics",
-    icon: <Monitor className="h-6 w-6" />,
-    count: "8.2K+",
-  },
-  {
-    id: "3",
-    name: "Sports & Entertainment",
-    icon: <Shield className="h-6 w-6" />,
-    count: "5.9K+",
-  },
-  {
-    id: "4",
-    name: "Beauty & Personal Care",
-    icon: <Sparkles className="h-6 w-6" />,
-    count: "4.7K+",
-  },
-  {
-    id: "5",
-    name: "Jewelry & Watches",
-    icon: <Gem className="h-6 w-6" />,
-    count: "3.1K+",
-  },
-  {
-    id: "6",
-    name: "Home & Garden",
-    icon: <Home className="h-6 w-6" />,
-    count: "6.8K+",
-  },
-  {
-    id: "7",
-    name: "Footwear & Accessories",
-    icon: <Footprints className="h-6 w-6" />,
-    count: "2.4K+",
-  },
-];
+// Icons pool used to decorate categories coming from the API
+const CATEGORY_ICONS = [Shirt, Monitor, Shield, Sparkles, Gem, Home, Footprints];
 
 const trendingSearches: TrendingSearch[] = [
   {
@@ -94,8 +53,36 @@ const trendingSearches: TrendingSearch[] = [
   },
 ];
 
+async function fetchHomeCategories(): Promise<Category[]> {
+  const res = await api.get(`/category`);
+  const data = res.data;
+
+  const raw = data && data.data && Array.isArray(data.data.items)
+    ? data.data.items
+    : data && Array.isArray(data.categories)
+    ? data.categories
+    : Array.isArray(data)
+    ? data
+    : [];
+
+  const mapped: Category[] = raw.map((cat: any, index: number) => {
+    const IconComp = CATEGORY_ICONS[index % CATEGORY_ICONS.length];
+    return {
+      id: String(cat._id ?? cat.id ?? index),
+      name: cat.name ?? "Category",
+      icon: <IconComp className="h-6 w-6" />,
+    };
+  });
+
+  return mapped;
+}
+
 export default function CategoriesSection() {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: ["home-categories"],
+    queryFn: fetchHomeCategories,
+  });
 
   return (
     <section className="w-full bg-gradient-to-b from-white to-gray-50 py-12 sm:py-16 lg:py-20">
@@ -118,6 +105,12 @@ export default function CategoriesSection() {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12 lg:mb-16">
+          {isLoading && categories.length === 0 && (
+            <div className="col-span-2 md:col-span-3 lg:col-span-4 text-center text-gray-500">
+              Loading categories...
+            </div>
+          )}
+
           {categories.map((category) => (
             <Link
               key={category.id}
@@ -150,9 +143,11 @@ export default function CategoriesSection() {
                 </h3>
 
                 {/* Product Count */}
-                <p className="text-sm text-gray-500 mb-3">
-                  {category.count} products
-                </p>
+                {category.count && (
+                  <p className="text-sm text-gray-500 mb-3">
+                    {category.count} products
+                  </p>
+                )}
 
                 {/* Arrow Icon */}
                 <div className="flex items-center gap-2 text-blue opacity-0 group-hover:opacity-100 transition-opacity">
@@ -171,7 +166,7 @@ export default function CategoriesSection() {
           
           <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 sm:p-10 lg:p-12 shadow-xl">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 lg:mb-10 gap-4">
+            {/* <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 lg:mb-10 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="w-1 h-8 bg-gradient-to-b from-orange to-orange-200 rounded-full" />
@@ -190,22 +185,22 @@ export default function CategoriesSection() {
                 View All
                 <ArrowRight className="h-5 w-5" />
               </Link>
-            </div>
+            </div> */}
 
             {/* Trending Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
               {trendingSearches.map((search, index) => (
                 <Link
                   key={search.id}
                   href={`/products/${search.id}`}
                   className="group relative"
                 >
-                  {/* Card Container */}
+                
                   <div className="relative h-full bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-gray-100 group-hover:border-blue">
-                    {/* Gradient Overlay on Hover */}
+                    
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-50/0 to-purple-100/0 group-hover:from-white group-hover:to-blue-50 transition-all duration-500 z-0" />
                     
-                    {/* Badge */}
+                   
                     {search.badge && (
                       <div className="absolute top-4 right-4 z-20">
                         <span
@@ -220,9 +215,9 @@ export default function CategoriesSection() {
                       </div>
                     )}
 
-                    {/* Content */}
+                   
                     <div className="relative z-10 p-6 lg:p-8">
-                      {/* Image Container */}
+                     
                       <div className="relative w-full h-56 lg:h-64 mb-6 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50 group-hover:from-purple-50 group-hover:to-blue-100 transition-all duration-500 shadow-inner">
                         <div className="absolute inset-0  transition-colors duration-500 z-10" />
                         <Image
@@ -233,7 +228,7 @@ export default function CategoriesSection() {
                         />
                       </div>
 
-                      {/* Search Term */}
+                     
                       <div className="flex items-center justify-between">
                         <h4 className="font-bold text-xl lg:text-2xl text-gray-900 group-hover:text-blue transition-colors duration-300">
                           {search.term}
@@ -244,14 +239,14 @@ export default function CategoriesSection() {
                       </div>
                     </div>
 
-                    {/* Shine Effect on Hover */}
+                   
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                     </div>
                   </div>
                 </Link>
               ))}
-            </div>
+            </div> */}
 
             {/* Mobile View All Link */}
             <Link

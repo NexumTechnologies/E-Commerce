@@ -47,24 +47,24 @@ export default function AdminLayout({
 
           <Section title="Category Management">
             <NavItem href="/admin/categories">Categories</NavItem>
-            <NavItem href="/admin/attributes">Attributes</NavItem>
-            <NavItem href="/admin/brands">Brands</NavItem>
+            {/* <NavItem href="/admin/attributes">Attributes</NavItem>
+            <NavItem href="/admin/brands">Brands</NavItem> */}
           </Section>
-
+ 
           <Section title="Approvals">
             <NavItem href="/admin/approvals/buyers">Buyer Approvals</NavItem>
             <NavItem href="/admin/approvals/sellers">Seller Approvals</NavItem>
-            <NavItem href="/admin/approvals/products">
-              Product Approvals
-            </NavItem>
           </Section>
 
           <Section title="Product Management">
             <NavItem href="/admin/products">All Products</NavItem>
+            <NavItem href="/admin/products/listed">Listed Products</NavItem>
+            <NavItem href="/admin/products/percentage">Percentage Management</NavItem>
           </Section>
 
           <Section title="Order Management">
             <NavItem href="/admin/orders">All Orders</NavItem>
+            {/* <NavItem href="/admin/orders/listed">Listed Product Orders</NavItem> */}
             <NavItem href="/admin/orders/pending">Pending Orders</NavItem>
             <NavItem href="/admin/orders/completed">Completed Orders</NavItem>
             <NavItem href="/admin/orders/cancelled">

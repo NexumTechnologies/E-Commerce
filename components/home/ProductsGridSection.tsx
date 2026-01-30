@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Star, ShoppingCart, Heart, ArrowRight, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/axios";
 
 interface Product {
   id: string;
@@ -16,92 +18,58 @@ interface Product {
   discount?: number;
 }
 
-const products: Product[] = [
-  {
-    id: "1",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "20,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 1240,
-    discount: 20,
-  },
-  {
-    id: "2",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "18,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 892,
-    discount: 11,
-  },
-  {
-    id: "3",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "22,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 2156,
-    discount: 27,
-  },
-  {
-    id: "4",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "19,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 567,
-    discount: 16,
-  },
-  {
-    id: "5",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "21,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 3421,
-    discount: 24,
-  },
-  {
-    id: "6",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "17,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 743,
-    discount: 6,
-  },
-  {
-    id: "7",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "23,000 EGP",
-    image: "/dummy-product.png",
-    reviews: 1890,
-    discount: 30,
-  },
-  {
-    id: "8",
-    name: "Apple Watch Series 9",
-    rating: 4.9,
-    discountPrice: "16,000 EGP",
-    cutPrice: "18,500 EGP",
-    image: "/dummy-product.png",
-    reviews: 1123,
-    discount: 14,
-  },
-];
+async function fetchFeaturedProducts(): Promise<Product[]> {
+  const res = await api.get("/product/public/listed", { params: { limit: 12 } });
+  const data = res.data;
+  const items: any[] =
+    data?.data?.items || data?.data || data?.products || data?.items || data || [];
+
+  return items.map((product: any) => {
+    const images: string[] = Array.isArray(product.image_url)
+      ? product.image_url
+      : product.image_url
+        ? [product.image_url]
+        : [];
+
+    const image = images[0] || "/dummy-product.png";
+    const name = product.name || "Product";
+
+    const basePrice = Number(product.price) || 0;
+    const customerPriceRaw =
+      product && product.customer_price != null
+        ? Number(product.customer_price)
+        : null;
+    const listingPrice =
+      customerPriceRaw != null && !Number.isNaN(customerPriceRaw)
+        ? customerPriceRaw
+        : basePrice;
+
+    const discountPrice = `${listingPrice} AED`;
+    const cutPrice = discountPrice;
+
+    return {
+      id: String(product.id),
+      name,
+      rating: 0,
+      discountPrice,
+      cutPrice,
+      image,
+    } as Product;
+  });
+}
 
 export default function ProductsGridSection() {
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useQuery<Product[]>({
+    queryKey: ["home-listed-products", "featured"],
+    queryFn: fetchFeaturedProducts,
+  });
 
   const toggleFavorite = (productId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -156,8 +124,25 @@ export default function ProductsGridSection() {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {products.map((product) => (
+        {isLoading && (
+          <div className="py-8 text-center text-sm text-gray-500">
+            Loading featured products...
+          </div>
+        )}
+        {!isLoading && error && (
+          <div className="py-8 text-center text-sm text-red-500">
+            Failed to load featured products.
+          </div>
+        )}
+        {!isLoading && !error && products.length === 0 && (
+          <div className="py-8 text-center text-sm text-gray-500">
+            No listed products available yet.
+          </div>
+        )}
+
+        {products.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {products.map((product) => (
             <Link
               key={product.id}
               href={`/products/${product.id}`}
@@ -256,8 +241,9 @@ export default function ProductsGridSection() {
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-blue-500/10 transition-all duration-300 pointer-events-none" />
               </div>
             </Link>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* View More Link (Mobile) */}
         <div className="mt-8 flex justify-center sm:hidden">

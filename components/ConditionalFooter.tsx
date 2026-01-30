@@ -5,7 +5,10 @@ import Footer from "./Footer";
 
 export default function ConditionalFooter() {
   const pathname = usePathname();
-  const hideFooter = pathname?.startsWith("/seller") || pathname?.startsWith("/buyer");
+  const hideFooter =
+    pathname?.startsWith("/seller") ||
+    pathname?.startsWith("/buyer") ||
+    pathname?.startsWith("/admin");
 
   if (hideFooter) {
     return null;

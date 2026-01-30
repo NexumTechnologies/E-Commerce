@@ -3,7 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronRight, ChevronLeft, Zap, Clock, ArrowRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/axios";
+import {
+  ChevronRight,
+  ChevronLeft,
+  Zap,
+  Clock,
+  ArrowRight,
+} from "lucide-react";
 
 interface Product {
   id: string;
@@ -13,66 +21,69 @@ interface Product {
   moq: string;
   discount?: number;
 }
+async function fetchTopDeals(): Promise<Product[]> {
+  const res = await api.get("/product/public/listed", { params: { limit: 10 } });
+  const data = res.data;
+  const items: any[] =
+    data?.data?.items || data?.data || data?.products || data?.items || data || [];
 
-const products: Product[] = [
-  {
-    id: "1",
-    image: "/top-deals-1.png",
-    salePrice: "30,000 EGP",
-    cutPrice: "35,000 EGP",
-    moq: "MOQ: 1",
-    discount: 14,
-  },
-  {
-    id: "2",
-    image: "/top-deals-2.png",
-    salePrice: "30,000 EGP",
-    cutPrice: "38,000 EGP",
-    moq: "MOQ: 1",
-    discount: 21,
-  },
-  {
-    id: "3",
-    image: "/top-deals-3.png",
-    salePrice: "30,000 EGP",
-    cutPrice: "40,000 EGP",
-    moq: "MOQ: 1",
-    discount: 25,
-  },
-  {
-    id: "4",
-    image: "/top-deals-4.png",
-    salePrice: "30,000 EGP",
-    cutPrice: "36,000 EGP",
-    moq: "MOQ: 1",
-    discount: 17,
-  },
-  {
-    id: "5",
-    image: "/top-deals-5.png",
-    salePrice: "30,000 EGP",
-    cutPrice: "42,000 EGP",
-    moq: "MOQ: 1",
-    discount: 29,
-  },
-];
+  return items.map((product: any) => {
+    const images: string[] = Array.isArray(product.image_url)
+      ? product.image_url
+      : product.image_url
+        ? [product.image_url]
+        : [];
+
+    const image = images[0] || "/top-deals-1.png";
+
+    const basePrice = Number(product.price) || 0;
+    const customerPriceRaw =
+      product && product.customer_price != null
+        ? Number(product.customer_price)
+        : null;
+    const saleNumeric =
+      customerPriceRaw != null && !Number.isNaN(customerPriceRaw)
+        ? customerPriceRaw
+        : basePrice;
+
+    const salePrice = `${saleNumeric} AED`;
+    const cutPrice = salePrice; // avoid showing a fake discount for now
+
+    return {
+      id: String(product.id),
+      image,
+      salePrice,
+      cutPrice,
+      moq: "MOQ: 1",
+    } as Product;
+  });
+}
 
 export default function TopDealsSection() {
   const [isHovered, setIsHovered] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
 
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useQuery<Product[]>({
+    queryKey: ["home-listed-products", "top-deals"],
+    queryFn: fetchTopDeals,
+  });
+
   const visibleCards = 5; // Number of cards visible at a time
 
   const handlePrev = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex > 0 ? prevIndex - 1 : products.length - visibleCards
+      prevIndex > 0 ? prevIndex - 1 : products.length - visibleCards,
     );
   };
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex < products.length - visibleCards ? prevIndex + 1 : 0
+      prevIndex < products.length - visibleCards ? prevIndex + 1 : 0,
     );
   };
 
@@ -124,10 +135,27 @@ export default function TopDealsSection() {
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
-              <div className="flex gap-4 sm:gap-6 overflow-x-auto lg:overflow-hidden scrollbar-hide pb-4">
-                {products
-                  .slice(currentIndex, currentIndex + visibleCards)
-                  .map((product) => (
+              {isLoading && (
+                <div className="py-8 text-center text-sm text-gray-500">
+                  Loading top deals...
+                </div>
+              )}
+              {!isLoading && error && (
+                <div className="py-8 text-center text-sm text-red-500">
+                  Failed to load top deals.
+                </div>
+              )}
+              {!isLoading && !error && products.length === 0 && (
+                <div className="py-8 text-center text-sm text-gray-500">
+                  No listed products available yet.
+                </div>
+              )}
+
+              {products.length > 0 && (
+                <div className="flex gap-4 sm:gap-6 overflow-x-auto lg:overflow-hidden scrollbar-hide pb-4">
+                  {products
+                    .slice(currentIndex, currentIndex + visibleCards)
+                    .map((product) => (
                     <Link
                       key={product.id}
                       href={`/products/${product.id}`}
@@ -193,7 +221,9 @@ export default function TopDealsSection() {
                               {product.moq}
                             </span>
                             <div className="flex items-center gap-1 text-blue opacity-0 group-hover:opacity-100 transition-opacity">
-                              <span className="text-xs font-semibold">View</span>
+                              <span className="text-xs font-semibold">
+                                View
+                              </span>
                               <ChevronRight className="h-4 w-4" />
                             </div>
                           </div>
@@ -203,8 +233,9 @@ export default function TopDealsSection() {
                         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-blue-500/10 transition-all duration-300 pointer-events-none" />
                       </div>
                     </Link>
-                  ))}
-              </div>
+                    ))}
+                  </div>
+                  )}
 
               {/* Navigation Arrows */}
               {isHovered && products.length > visibleCards && (
@@ -230,20 +261,20 @@ export default function TopDealsSection() {
             {/* Progress Indicator */}
             {products.length > visibleCards && (
               <div className="flex items-center justify-center gap-2 mt-6">
-                {Array.from({ length: Math.ceil(products.length / visibleCards) }).map(
-                  (_, index) => (
-                    <button
-                      key={index}
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        Math.floor(currentIndex / visibleCards) === index
-                          ? "w-8 bg-gradient-to-r from-[#7c3aed] to-[#a78bfa]"
-                          : "w-2 bg-gray-300 hover:bg-gray-400"
-                      }`}
-                      onClick={() => setCurrentIndex(index * visibleCards)}
-                      aria-label={`Go to page ${index + 1}`}
-                    />
-                  )
-                )}
+                {Array.from({
+                  length: Math.ceil(products.length / visibleCards),
+                }).map((_, index) => (
+                  <button
+                    key={index}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      Math.floor(currentIndex / visibleCards) === index
+                        ? "w-8 bg-gradient-to-r from-[#7c3aed] to-[#a78bfa]"
+                        : "w-2 bg-gray-300 hover:bg-gray-400"
+                    }`}
+                    onClick={() => setCurrentIndex(index * visibleCards)}
+                    aria-label={`Go to page ${index + 1}`}
+                  />
+                ))}
               </div>
             )}
           </div>

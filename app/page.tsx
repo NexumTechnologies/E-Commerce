@@ -2,8 +2,6 @@ import HeroSearchSection from "@/components/home/HeroSearchSection";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import ProductsGridSection from "@/components/home/ProductsGridSection";
-import TopDealsSection from "@/components/home/TopDealsSection";
-import TopRankingSection from "@/components/home/TopRankingSection";
 
 export const metadata = {
   title:
@@ -18,8 +16,6 @@ export default function Home() {
       <HeroSearchSection />
       <WelcomeBanner />
       <CategoriesSection />
-      <TopDealsSection />
-      <TopRankingSection />
       <ProductsGridSection />
     </div>
   );

@@ -5,12 +5,16 @@ export const metadata = {
   title: "Seller Dashboard",
 };
 
-export default function SellerDashboardLayout({ children }: { children: React.ReactNode }) {
+export default function SellerDashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto flex">
+      <div className="w-full flex flex-col lg:flex-row">
         <SellerSidebar />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 lg:p-6">{children}</main>
       </div>
     </div>
   );
