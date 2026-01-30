@@ -188,7 +188,7 @@ export default function AdminListedOrdersPage() {
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
                                 src={getImageSrc(product?.image_url) as string}
-                                alt={product.name}
+                                alt={product?.name ?? "Product image"}
                                 className="w-full h-full object-cover rounded-xl"
                                 loading="lazy"
                               />

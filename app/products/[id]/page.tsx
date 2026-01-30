@@ -242,7 +242,7 @@ export default function ProductDetailPage() {
                       quantity,
                     });
                   }}
-                  disabled={addToCartMutation.isLoading || product.quantity === 0}
+                  disabled={addToCartMutation.isPending || product.quantity === 0}
                   className="flex-1 inline-flex items-center justify-center rounded-full border border-blue-600 text-blue-600 text-sm py-2.5 hover:bg-blue-50 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Add to cart

@@ -14,7 +14,9 @@ export default function BrowsePage() {
           <Suspense fallback={<div className="w-full lg:w-72">Loading filters...</div>}>
             <BrowseSidebar />
           </Suspense>
-          <BrowseContent />
+          <Suspense fallback={<div className="flex-1">Loading products...</div>}>
+            <BrowseContent />
+          </Suspense>
         </div>
       </main>
     </div>
