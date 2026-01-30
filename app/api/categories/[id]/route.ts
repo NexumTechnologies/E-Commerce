@@ -3,16 +3,19 @@ import { connectDB } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
 import { getAuthUserFromRequest, requireAdmin } from "@/lib/auth";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+type CategoryRouteParams = {
+  params: Promise<{ id: string }>;
+};
+
+export async function PUT(req: NextRequest, context: CategoryRouteParams) {
   try {
+    const { id } = await context.params;
     await connectDB();
     const authUser = await getAuthUserFromRequest();
     try { requireAdmin(authUser); } catch { return NextResponse.json({ message: "Only admin can update categories" }, { status: 403 }); }
 
     const body = await req.json();
     const { name } = body;
-
-    const id = params.id;
     const category = await Category.findById(id);
     if (!category) return NextResponse.json({ message: "Category not found" }, { status: 404 });
 
@@ -26,13 +29,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: CategoryRouteParams) {
   try {
+    const { id } = await context.params;
     await connectDB();
     const authUser = await getAuthUserFromRequest();
     try { requireAdmin(authUser); } catch { return NextResponse.json({ message: "Only admin can delete categories" }, { status: 403 }); }
-
-    const id = params.id;
     const category = await Category.findById(id);
     if (!category) return NextResponse.json({ message: "Category not found" }, { status: 404 });
 
@@ -44,10 +46,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: CategoryRouteParams) {
   try {
+    const { id } = await context.params;
     await connectDB();
-    const id = params.id;
     const category = await Category.findById(id).lean().exec();
     if (!category) return NextResponse.json({ message: "Category not found" }, { status: 404 });
     return NextResponse.json({ category });
