@@ -14,9 +14,9 @@ export default function BuyerBrowseProducts() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["buyer-all-products"],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
+      // Request all active products (listed or not) for the buyer.
       const res = await api.get("/product", {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        params: { includeAll: true },
       });
       return res.data;
     },

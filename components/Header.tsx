@@ -107,16 +107,14 @@ export default function Header() {
   useEffect(() => {
     const fetchCartCount = async () => {
       if (typeof window === "undefined") return;
-      const token = localStorage.getItem("token");
-      if (!token) {
+      if (!user) {
         setCartCount(null);
         return;
       }
 
       try {
-        const res = await api.get("/addToCart", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Use cookie-based auth via axios `withCredentials` instead of a localStorage token.
+        const res = await api.get("/addToCart");
         const cart = res.data?.data || res.data || {};
         const items = cart.items || [];
         const total =

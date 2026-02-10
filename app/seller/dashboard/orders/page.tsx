@@ -107,10 +107,20 @@ export default function SellerOrdersPage() {
                       </div>
                     )}
                   </td>
-                  <td className="py-2 pr-4">
-                    <span className="font-medium text-slate-900">
+                  <td className="py-2 pr-4 text-xs">
+                    <div className="font-semibold text-slate-900">
                       {order.total_amount} AED
-                    </span>
+                    </div>
+                    {typeof order.admin_earning_amount === "number" && (
+                      <div className="text-[11px] text-slate-500">
+                        Admin margin: {order.admin_earning_amount} AED
+                      </div>
+                    )}
+                    {typeof order.seller_earning_amount === "number" && (
+                      <div className="text-[11px] text-emerald-700 font-medium">
+                        Your earning: {order.seller_earning_amount} AED
+                      </div>
+                    )}
                   </td>
                   <td className="py-2 pr-4">
                     <span
@@ -225,6 +235,16 @@ export default function SellerOrdersPage() {
                   <p className="mt-1 text-xs text-slate-500">
                     Total amount: {selectedOrder.total_amount} AED
                   </p>
+                  {typeof selectedOrder.admin_earning_amount === "number" && (
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      Admin margin: {selectedOrder.admin_earning_amount} AED
+                    </p>
+                  )}
+                  {typeof selectedOrder.seller_earning_amount === "number" && (
+                    <p className="mt-0.5 text-xs text-emerald-700 font-medium">
+                      Your earning: {selectedOrder.seller_earning_amount} AED
+                    </p>
+                  )}
                   <div className="mt-1 text-xs text-slate-500">
                     <span className="font-medium text-slate-700">Status: </span>
                     <span

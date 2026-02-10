@@ -21,10 +21,7 @@ export default function ProductDetailPage() {
   } = useQuery({
     queryKey: ["product-detail", id],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const res = await api.get(`/product/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
+      const res = await api.get(`/product/${id}`);
       return res.data;
     },
     enabled: !!id,
@@ -32,20 +29,25 @@ export default function ProductDetailPage() {
 
   const addToCartMutation = useMutation({
     mutationFn: async ({ product_id, quantity }: { product_id: number; quantity: number }) => {
-      const token = localStorage.getItem("token");
-      const res = await api.post(
-        "/addToCart",
-        { product_id, quantity },
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        },
-      );
+      const res = await api.post("/addToCart", { product_id, quantity });
       return res.data;
     },
     onSuccess: (res) => {
       setToast({
         show: true,
         message: res?.message || "Added to cart",
+      });
+      setTimeout(() => setToast(null), 3000);
+    },
+    onError: (err: any) => {
+      // If backend reports unauthorized, redirect to login.
+      if (err?.response?.status === 401) {
+        router.push("/auth/signin");
+        return;
+      }
+      setToast({
+        show: true,
+        message: err?.response?.data?.message || "Failed to add to cart",
       });
       setTimeout(() => setToast(null), 3000);
     },
@@ -229,11 +231,11 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const token =
-                      typeof window !== "undefined"
-                        ? localStorage.getItem("token")
-                        : null;
-                    if (!token) {
+                    const isLoggedIn =
+                      typeof window !== "undefined" &&
+                      !!localStorage.getItem("user");
+
+                    if (!isLoggedIn) {
                       router.push("/auth/signin");
                       return;
                     }
@@ -251,15 +253,40 @@ export default function ProductDetailPage() {
                   type="button"
                   disabled={product.quantity === 0}
                   onClick={() => {
-                    const token =
-                      typeof window !== "undefined"
-                        ? localStorage.getItem("token")
-                        : null;
-                    if (!token) {
+                    const isLoggedIn =
+                      typeof window !== "undefined" &&
+                      !!localStorage.getItem("user");
+
+                    if (!isLoggedIn) {
                       router.push("/auth/signin");
                       return;
                     }
-                    router.push("/checkout");
+                    // For "Buy now", add this item to the cart with the selected quantity,
+                    // then navigate to checkout so it appears there.
+                    addToCartMutation.mutate(
+                      {
+                        product_id: product.id,
+                        quantity,
+                      },
+                      {
+                        onSuccess: () => {
+                          router.push("/checkout");
+                        },
+                        onError: (err: any) => {
+                          if (err?.response?.status === 401) {
+                            router.push("/auth/signin");
+                            return;
+                          }
+                          setToast({
+                            show: true,
+                            message:
+                              err?.response?.data?.message ||
+                              "Failed to prepare checkout",
+                          });
+                          setTimeout(() => setToast(null), 3000);
+                        },
+                      },
+                    );
                   }}
                   className="flex-1 inline-flex items-center justify-center rounded-full bg-blue-600 text-white text-sm py-2.5 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
