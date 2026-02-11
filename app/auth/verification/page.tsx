@@ -60,7 +60,7 @@ export default function VerificationPage() {
 
         <h1 className="mt-6 text-2xl font-semibold">Verification pending</h1>
         <p className="mt-2 text-gray-600">
-          Your account is currently under review by our team. An admin will approve your account shortly — once approved you'll gain access to your dashboard.
+          Your account is currently under review by our team. Your verification is pending — we will inform you when an admin approves your account.
         </p>
 
         <ul className="mt-6 text-left mx-auto max-w-sm space-y-3">
@@ -74,7 +74,7 @@ export default function VerificationPage() {
           </li>
           <li className="flex items-start gap-3">
             <span className="mt-1 w-2.5 h-2.5 bg-[#34d399] rounded-full opacity-40" />
-            <span className="text-sm text-gray-700">Account approved (you'll be notified)</span>
+            <span className="text-sm text-gray-700">Account approved (you&apos;ll be notified)</span>
           </li>
         </ul>
 

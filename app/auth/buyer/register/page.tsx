@@ -5,7 +5,7 @@ import SellerRegisterStep1 from "@/components/auth/SellerRegisterStep1";
 import SignInPromo from "@/components/auth/SignInPromo";
 
 export default function BuyerRegisterPage() {
-  const role: "buyer" = "buyer";
+  const role = "buyer" as const;
 
   return (
     <div className="min-h-screen bg-white">

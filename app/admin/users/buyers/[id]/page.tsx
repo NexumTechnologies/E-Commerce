@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
@@ -10,8 +9,8 @@ function formatDate(value: string | null | undefined) {
   if (!value) return "-";
   try {
     return new Date(value).toLocaleString();
-  } catch (e) {
-    return value as string;
+  } catch {
+    return value;
   }
 }
 
@@ -49,9 +48,10 @@ export default function BuyerDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["admin-user", "buyer", id] });
       // update cache and show toast
-      queryClient.setQueryData(["admin-user", "buyer", id], (old: any) => {
-        const updated = res?.data || {};
-        return { ...old, data: updated };
+      queryClient.setQueryData(["admin-user", "buyer", id], (old: unknown) => {
+        const updated = (res as { data?: unknown })?.data ?? {};
+        const previous = (old as { [key: string]: unknown }) ?? {};
+        return { ...previous, data: updated };
       });
       setToast({ show: true, message: res?.message || "User status updated" });
       setTimeout(() => setToast({ show: false, message: "" }), 3000);

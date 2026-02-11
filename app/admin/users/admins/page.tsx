@@ -5,6 +5,33 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 
+type AdminRow = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  is_varified?: boolean;
+  profile_image?: string | null;
+};
+
+type UsersResponse = {
+  data?: {
+    items?: AdminRow[];
+    pagination?: {
+      totalItems?: number;
+    };
+  };
+};
+
+type SelectedUserState =
+  | null
+  | { error: true; message: string }
+  | AdminRow;
+
+function isErrorState(value: SelectedUserState): value is { error: true; message: string } {
+  return Boolean(value && typeof value === "object" && "error" in value);
+}
+
 function initials(name?: string) {
   if (!name) return "?";
   return name
@@ -19,7 +46,7 @@ export default function AdminUsersAdminsPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<SelectedUserState>(null);
   const size = 10;
 
   useEffect(() => {
@@ -37,9 +64,10 @@ export default function AdminUsersAdminsPage() {
     },
   });
 
-  const users = data?.data?.items || [];
-  const pagination = data?.data?.pagination || {};
-  const total = pagination.totalItems || 0;
+  const payload = data as UsersResponse | undefined;
+  const users = payload?.data?.items ?? [];
+  const pagination = payload?.data?.pagination;
+  const total = pagination?.totalItems ?? 0;
   const start = total === 0 ? 0 : (page - 1) * size + 1;
   const end = Math.min(page * size, total || 0);
 
@@ -76,7 +104,7 @@ export default function AdminUsersAdminsPage() {
 
             <div className="p-4">
               <ul className="divide-y">
-                {users.map((u: any) => (
+                {users.map((u) => (
                   <li key={u.id} className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-lg font-semibold text-gray-700">
@@ -101,8 +129,8 @@ export default function AdminUsersAdminsPage() {
                           setSelectedUser(null);
                           try {
                             const resp = await api.get(`/users/${u.id}`);
-                            setSelectedUser(resp.data?.data || resp.data);
-                          } catch (err) {
+                            setSelectedUser((resp.data?.data || resp.data) as SelectedUserState);
+                          } catch {
                             setSelectedUser({ error: true, message: 'Failed to load details' });
                           }
                         }}
@@ -152,7 +180,7 @@ export default function AdminUsersAdminsPage() {
             <div className="mt-4">
               {!selectedUser ? (
                 <div className="text-center py-6">Loading details...</div>
-              ) : selectedUser.error ? (
+              ) : isErrorState(selectedUser) ? (
                 <div className="text-red-600">{selectedUser.message || 'Failed to load'}</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

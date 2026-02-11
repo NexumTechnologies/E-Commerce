@@ -5,6 +5,28 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 
+type BuyerProfile = {
+  profile_image?: string | null;
+};
+
+type BuyerRow = {
+  id: number;
+  name: string;
+  email: string;
+  is_varified?: boolean;
+  ordersCount?: number;
+  Buyer?: BuyerProfile;
+};
+
+type UsersResponse = {
+  data?: {
+    items?: BuyerRow[];
+    pagination?: {
+      totalItems?: number;
+    };
+  };
+};
+
 function initials(name?: string) {
   if (!name) return "?";
   return name
@@ -35,9 +57,10 @@ export default function AdminBuyersPage() {
     },
   });
 
-  const users = data?.data?.items || [];
-  const pagination = data?.data?.pagination || {};
-  const total = pagination.totalItems || 0;
+  const payload = data as UsersResponse | undefined;
+  const users = payload?.data?.items ?? [];
+  const pagination = payload?.data?.pagination;
+  const total = pagination?.totalItems ?? 0;
   const start = total === 0 ? 0 : (page - 1) * size + 1;
   const end = Math.min(page * size, total || 0);
 
@@ -107,7 +130,7 @@ export default function AdminBuyersPage() {
                 </div>
               ) : (
                 <ul className="space-y-3">
-                  {users.map((b: any) => (
+                  {users.map((b) => (
                     <li
                       key={b.id}
                       className="flex flex-col gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-[1px] hover:shadow-md sm:flex-row sm:items-center sm:justify-between"

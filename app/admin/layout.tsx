@@ -4,6 +4,93 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import api from "@/lib/axios";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+type AdminNavItem = { href: string; label: string };
+type AdminNavSection = { title: string; items: AdminNavItem[] };
+
+const ADMIN_NAV: AdminNavSection[] = [
+  {
+    title: "Dashboard",
+    items: [{ href: "/admin/dashboard", label: "Overview" }],
+  },
+  {
+    title: "User Management",
+    items: [
+      { href: "/admin/users/buyers", label: "Buyers" },
+      { href: "/admin/users/sellers", label: "Sellers" },
+      { href: "/admin/users/customers", label: "Customers" },
+      { href: "/admin/users/admins", label: "Admin Users" },
+    ],
+  },
+  {
+    title: "Category Management",
+    items: [{ href: "/admin/categories", label: "Categories" }],
+  },
+  {
+    title: "Approvals",
+    items: [
+      { href: "/admin/approvals/buyers", label: "Buyer Approvals" },
+      { href: "/admin/approvals/sellers", label: "Seller Approvals" },
+    ],
+  },
+  {
+    title: "Product Management",
+    items: [
+      { href: "/admin/products", label: "All Products" },
+      { href: "/admin/products/percentage", label: "Listing Percentage" },
+    ],
+  },
+  {
+    title: "Order Management",
+    items: [
+      { href: "/admin/orders", label: "All Orders" },
+      { href: "/admin/orders/pending", label: "Pending Orders" },
+      { href: "/admin/orders/completed", label: "Completed Orders" },
+      { href: "/admin/orders/cancelled", label: "Cancelled / Refunded" },
+    ],
+  },
+  {
+    title: "Reports & Analytics",
+    items: [
+      { href: "/admin/reports/sales", label: "Sales Reports" },
+      { href: "/admin/reports/users", label: "User Reports" },
+      { href: "/admin/reports/revenue", label: "Revenue Reports" },
+    ],
+  },
+];
+
+function getAdminPageTitle(pathname: string | null) {
+  if (!pathname) return "Admin";
+
+  const match = ADMIN_NAV.flatMap((s) => s.items)
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((i) => pathname === i.href || pathname.startsWith(i.href + "/"));
+
+  if (match) return match.label;
+
+  const segment = pathname
+    .replace(/\/$/, "")
+    .split("/")
+    .filter(Boolean)
+    .at(-1);
+  if (!segment) return "Admin";
+
+  return segment
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
 
 export default function AdminLayout({
   children,
@@ -11,6 +98,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -27,71 +115,150 @@ export default function AdminLayout({
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      <aside className="w-64 bg-white border-r hidden md:block">
-        <div className="px-6 py-6">
-          <h2 className="text-xl font-bold text-[#7c3aed]">Admin Panel</h2>
+    <div className="min-h-screen bg-background text-foreground">
+      <a
+        href="#admin-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:shadow"
+      >
+        Skip to content
+      </a>
+
+      <div className="flex min-h-screen">
+        {/* Desktop sidebar */}
+        <aside className="hidden md:flex w-72 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+          <AdminSidebarHeader />
+          <ScrollArea className="flex-1">
+            <nav className="px-3 py-4">
+              {ADMIN_NAV.map((section) => (
+                <Section key={section.title} title={section.title}>
+                  {section.items.map((item) => (
+                    <NavItem key={item.href} href={item.href}>
+                      {item.label}
+                    </NavItem>
+                  ))}
+                </Section>
+              ))}
+            </nav>
+          </ScrollArea>
+
+          <div className="p-4 border-t border-sidebar-border">
+            <Button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              variant="ghost"
+              className="w-full justify-start text-destructive hover:text-destructive"
+            >
+              {loggingOut ? "Logging out…" : "Logout"}
+            </Button>
+          </div>
+        </aside>
+
+        {/* Main */}
+        <div className="min-w-0 flex-1">
+          <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
+              {/* Mobile menu */}
+              <div className="md:hidden">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="icon" aria-label="Open admin navigation">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="size-5"
+                      >
+                        <path
+                          d="M4 6H20M4 12H20M4 18H20"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </Button>
+                  </SheetTrigger>
+
+                  <SheetContent side="left" className="p-0">
+                    <SheetHeader className="border-b">
+                      <SheetTitle>
+                        <Link href="/admin/dashboard" className="font-semibold">
+                          Admin Panel
+                        </Link>
+                      </SheetTitle>
+                    </SheetHeader>
+                    <ScrollArea className="h-[calc(100vh-56px-72px)]">
+                      <nav className="px-3 py-4">
+                        {ADMIN_NAV.map((section) => (
+                          <Section key={section.title} title={section.title}>
+                            {section.items.map((item) => (
+                              <NavItem key={item.href} href={item.href} closeOnMobile>
+                                {item.label}
+                              </NavItem>
+                            ))}
+                          </Section>
+                        ))}
+                      </nav>
+                    </ScrollArea>
+
+                    <div className="p-4 border-t">
+                      <SheetClose asChild>
+                        <Button
+                          onClick={handleLogout}
+                          disabled={loggingOut}
+                          variant="ghost"
+                          className="w-full justify-start text-destructive hover:text-destructive"
+                        >
+                          {loggingOut ? "Logging out…" : "Logout"}
+                        </Button>
+                      </SheetClose>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium">
+                  {getAdminPageTitle(pathname)}
+                </div>
+                <div className="hidden sm:block text-xs text-muted-foreground truncate">
+                  {pathname}
+                </div>
+              </div>
+
+              <div className="hidden md:block">
+                <Button
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive"
+                >
+                  {loggingOut ? "Logging out…" : "Logout"}
+                </Button>
+              </div>
+            </div>
+          </header>
+
+          <main id="admin-content" className="px-4 py-6 sm:px-6">
+            <div className="mx-auto w-full max-w-[1400px]">{children}</div>
+          </main>
         </div>
+      </div>
+    </div>
+  );
+}
 
-        <nav className="px-2 pb-8">
-          <Section title="Dashboard">
-            <NavItem href="/admin/dashboard">Overview</NavItem>
-          </Section>
-
-          <Section title="User Management">
-            <NavItem href="/admin/users/buyers">Buyers</NavItem>
-            <NavItem href="/admin/users/sellers">Sellers</NavItem>
-            <NavItem href="/admin/users/customers">Customers</NavItem>
-            <NavItem href="/admin/users/admins">Admin Users</NavItem>
-          </Section>
-
-          <Section title="Category Management">
-            <NavItem href="/admin/categories">Categories</NavItem>
-            {/* <NavItem href="/admin/attributes">Attributes</NavItem>
-            <NavItem href="/admin/brands">Brands</NavItem> */}
-          </Section>
- 
-          <Section title="Approvals">
-            <NavItem href="/admin/approvals/buyers">Buyer Approvals</NavItem>
-            <NavItem href="/admin/approvals/sellers">Seller Approvals</NavItem>
-          </Section>
-
-          <Section title="Product Management">
-            <NavItem href="/admin/products">All Products</NavItem>
-            <NavItem href="/admin/products/listed">Listed Products</NavItem>
-            <NavItem href="/admin/products/percentage">Percentage Management</NavItem>
-          </Section>
-
-          <Section title="Order Management">
-            <NavItem href="/admin/orders">All Orders</NavItem>
-            {/* <NavItem href="/admin/orders/listed">Listed Product Orders</NavItem> */}
-            <NavItem href="/admin/orders/pending">Pending Orders</NavItem>
-            <NavItem href="/admin/orders/completed">Completed Orders</NavItem>
-            <NavItem href="/admin/orders/cancelled">
-              Cancelled / Refunded
-            </NavItem>
-          </Section>
-
-          <Section title="Reports & Analytics">
-            <NavItem href="/admin/reports/sales">Sales Reports</NavItem>
-            <NavItem href="/admin/reports/users">User Reports</NavItem>
-            <NavItem href="/admin/reports/revenue">Revenue Reports</NavItem>
-          </Section>
-        </nav>
-
-        {/* Logout button at the bottom */}
-        <div className="px-4 py-6 border-t mt-auto">
-          <button
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-md text-sm text-red-600 hover:bg-red-50"
-          >
-            {loggingOut ? "Logging out..." : "Logout"}
-          </button>
+function AdminSidebarHeader() {
+  return (
+    <div className="px-5 py-5 border-b border-sidebar-border">
+      <Link href="/admin/dashboard" className="flex items-center gap-2">
+        <div className="size-9 rounded-lg bg-sidebar-accent flex items-center justify-center border border-sidebar-border">
+          <span className="text-sm font-semibold text-sidebar-primary">A</span>
         </div>
-      </aside>
-
-      <main className="flex-1 p-6">{children}</main>
+        <div className="leading-tight">
+          <div className="text-sm font-semibold">Admin Panel</div>
+          <div className="text-xs text-muted-foreground">Manage your marketplace</div>
+        </div>
+      </Link>
     </div>
   );
 }
@@ -105,28 +272,42 @@ function Section({
 }) {
   const pathname = usePathname();
 
+  const getHrefProp = (child: React.ReactElement): string | null => {
+    const props = child.props as unknown;
+    if (!props || typeof props !== "object") return null;
+    const href = (props as { href?: unknown }).href;
+    return typeof href === "string" ? href : null;
+  };
+
   // determine if any child NavItem matches current pathname; if so, open the section by default
   const childrenArray = React.Children.toArray(children);
   const hasActive = childrenArray.some((child) => {
     if (!React.isValidElement(child)) return false;
-    const href = (child.props as any).href;
+    const href = getHrefProp(child);
     if (!href || !pathname) return false;
     return pathname === href || pathname.startsWith(href);
   });
 
   const [open, setOpen] = useState(hasActive);
 
+  React.useEffect(() => {
+    if (hasActive) setOpen(true);
+  }, [hasActive]);
+
   return (
-    <div className="mb-4">
+    <div className="mb-2">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2 text-xs text-gray-600 uppercase tracking-wide font-semibold mb-2 hover:bg-gray-50 rounded"
+        className="w-full flex items-center justify-between px-3 py-2 text-[11px] text-muted-foreground uppercase tracking-wide font-semibold hover:bg-sidebar-accent rounded-md"
         aria-expanded={open}
       >
         <span>{title}</span>
         <svg
-          className={`w-4 h-4 transform transition-transform duration-200 ${open ? "rotate-90" : "rotate-0"}`}
+          className={cn(
+            "w-4 h-4 transform transition-transform duration-200",
+            open ? "rotate-90" : "rotate-0"
+          )}
           viewBox="0 0 20 20"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -136,7 +317,10 @@ function Section({
       </button>
 
       <div
-        className={`space-y-1 overflow-hidden transition-[max-height] duration-200 ${open ? "max-h-96" : "max-h-0"}`}
+        className={cn(
+          "space-y-1 overflow-hidden transition-[max-height] duration-200",
+          open ? "max-h-96" : "max-h-0"
+        )}
       >
         {children}
       </div>
@@ -147,19 +331,33 @@ function Section({
 function NavItem({
   href,
   children,
+  closeOnMobile,
 }: {
   href: string;
   children: React.ReactNode;
+  closeOnMobile?: boolean;
 }) {
   const pathname = usePathname();
   const isActive = pathname === href || (pathname && pathname.startsWith(href));
 
-  return (
+  const link = (
     <Link
       href={href}
-      className={`block px-3 py-2 rounded-md text-sm ${isActive ? "bg-[#7c3aed]/10 text-[#7c3aed]" : "text-gray-700 hover:bg-gray-100"}`}
+      aria-current={isActive ? "page" : undefined}
+      className={cn(
+        "block rounded-md px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        isActive
+          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+          : "text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+      )}
     >
       {children}
     </Link>
   );
+
+  if (closeOnMobile) {
+    return <SheetClose asChild>{link}</SheetClose>;
+  }
+
+  return link;
 }

@@ -1,9 +1,39 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
+
+type CustomerProfile = {
+  profile_image?: string | null;
+};
+
+type CustomerRow = {
+  id: number;
+  name: string;
+  email: string;
+  role?: string;
+  is_varified?: boolean;
+  Customer?: CustomerProfile;
+};
+
+type UsersResponse = {
+  data?: {
+    items?: CustomerRow[];
+    pagination?: {
+      totalItems?: number;
+    };
+  };
+};
+
+type SelectedUserState =
+  | null
+  | { error: true; message: string }
+  | (CustomerRow & { is_varified?: boolean });
+
+function isErrorState(value: SelectedUserState): value is { error: true; message: string } {
+  return Boolean(value && typeof value === "object" && "error" in value);
+}
 
 function initials(name?: string) {
   if (!name) return "?";
@@ -20,7 +50,7 @@ export default function AdminCustomersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [unverifiedOnly, setUnverifiedOnly] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<SelectedUserState>(null);
   const size = 10;
 
   useEffect(() => {
@@ -39,16 +69,17 @@ export default function AdminCustomersPage() {
     },
   });
 
-  let users = data?.data?.items || [];
+  const payload = data as UsersResponse | undefined;
+  let users = payload?.data?.items ?? [];
   // exclude admins just in case
-  users = users.filter((u: any) => u.role !== "admin");
-  const pagination = data?.data?.pagination || {};
-  const total = pagination.totalItems || 0;
+  users = users.filter((u) => u.role !== "admin");
+  const pagination = payload?.data?.pagination;
+  const total = pagination?.totalItems ?? 0;
   const start = total === 0 ? 0 : (page - 1) * size + 1;
   const end = Math.min(page * size, total || 0);
 
   if (unverifiedOnly) {
-    users = users.filter((u: any) => !u.is_varified);
+    users = users.filter((u) => !u.is_varified);
   }
 
   return (
@@ -104,7 +135,7 @@ export default function AdminCustomersPage() {
                 <div className="mt-4">
                   {!selectedUser ? (
                     <div className="text-center py-6">Loading details...</div>
-                  ) : selectedUser.error ? (
+                  ) : isErrorState(selectedUser) ? (
                     <div className="text-red-600">{selectedUser.message || 'Failed to load'}</div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -132,7 +163,7 @@ export default function AdminCustomersPage() {
             </div>
           )}
               <ul className="divide-y">
-                {users.map((c: any) => (
+                {users.map((c) => (
                   <li key={c.id} className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-lg font-semibold text-gray-700">
@@ -169,8 +200,8 @@ export default function AdminCustomersPage() {
                           setSelectedUser(null);
                           try {
                             const resp = await api.get(`/users/${c.id}`);
-                            setSelectedUser(resp.data?.data || resp.data);
-                          } catch (err) {
+                            setSelectedUser((resp.data?.data || resp.data) as SelectedUserState);
+                          } catch {
                             // show minimal feedback in modal
                             setSelectedUser({ error: true, message: 'Failed to load details' });
                           }

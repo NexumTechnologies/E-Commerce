@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import type { AdminOrder } from "./types";
@@ -17,7 +17,10 @@ function useAdminOrders(status: AdminOrderStatus, page: number, size: number) {
   return useQuery({
     queryKey: ["admin-orders", status, page, size],
     queryFn: async () => {
-      const params: any = { page, size };
+      const params: { page: number; size: number; status?: Exclude<AdminOrderStatus, "all"> } = {
+        page,
+        size,
+      };
       if (status !== "all") params.status = status;
       const res = await api.get("/order/admin", { params });
       return res.data as {
@@ -140,10 +143,6 @@ export default function AdminAllOrdersPage() {
   const total = pagination?.totalItems ?? 0;
   const start = total === 0 ? 0 : (page - 1) * size + 1;
   const end = Math.min(page * size, total || 0);
-
-  useEffect(() => {
-    setPage(1);
-  }, [statusFilter]);
 
   return (
     <div className="space-y-6 relative">

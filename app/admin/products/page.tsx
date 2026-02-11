@@ -4,6 +4,38 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 
+type AdminProductUser = {
+  name?: string;
+  email?: string;
+};
+
+type AdminProductCategory = {
+  name?: string;
+};
+
+type AdminProduct = {
+  id: number;
+  name: string;
+  price?: number | string;
+  quantity?: number | string;
+  is_active?: boolean;
+  User?: AdminProductUser;
+  Category?: AdminProductCategory;
+};
+
+type AdminProductsResponse = {
+  data?: {
+    items?: AdminProduct[];
+  };
+  products?: AdminProduct[];
+} | AdminProduct[];
+
+function getProductsFromResponse(payload: unknown): AdminProduct[] {
+  const data = payload as AdminProductsResponse;
+  if (Array.isArray(data)) return data;
+  return data?.data?.items ?? data?.products ?? [];
+}
+
 export default function AdminProductsPage() {
   const queryClient = useQueryClient();
   const [toast, setToast] = useState<{
@@ -23,37 +55,34 @@ export default function AdminProductsPage() {
     },
   });
 
-  const products =
-    (data as any)?.data?.items || (data as any)?.products || (data as any)?.data || data || [];
+  const products = getProductsFromResponse(data);
 
   console.log("Products data:", data);
 
-  const toggleListingMutation = useMutation({
+  const approvalMutation = useMutation({
     mutationFn: async ({
       id,
-      is_listed,
-      display_price,
+      is_active,
     }: {
       id: number;
-      is_listed: boolean;
-      display_price?: number;
+      is_active: boolean;
     }) => {
       const token = localStorage.getItem("token");
-      const res = await api.put(
-        `/product/${id}/listing`,
-        display_price !== undefined ? { is_listed, display_price } : { is_listed },
+      const res = await api.patch(
+        `/product/${id}/approve`,
+        { is_active },
         {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         },
       );
       return res.data;
     },
-    onSuccess: (_data, variables: any) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
-      const listed = Boolean(variables?.is_listed);
+      const approved = Boolean(variables?.is_active);
       setToast({
         show: true,
-        message: listed ? "Product listed for customers" : "Product unlisted",
+        message: approved ? "Product approved" : "Product unapproved",
         tone: "success",
       });
       setTimeout(() => setToast(null), 2500);
@@ -79,7 +108,7 @@ export default function AdminProductsPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Product Management</h1>
           <p className="mt-1 text-sm text-slate-600">
-            View all seller products and adjust the price shown to buyers.
+            View all products and approve them for the marketplace.
           </p>
         </div>
       </header>
@@ -112,9 +141,8 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {products.map((product: any) => {
-                  const listing = product.listing;
-                  const isListed = listing?.is_listed;
+                {products.map((product) => {
+                  const isApproved = Boolean(product.is_active);
 
                   return (
                     <tr key={product.id} className="align-top">
@@ -137,13 +165,13 @@ export default function AdminProductsPage() {
                         {product.Category?.name || "-"}
                       </td>
                       <td className="py-2 pr-4">
-                        {isListed ? (
+                        {isApproved ? (
                           <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                            Listed
+                            Approved
                           </span>
                         ) : (
                           <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-600">
-                            Not listed
+                            Pending
                           </span>
                         )}
                       </td>
@@ -160,26 +188,18 @@ export default function AdminProductsPage() {
                           <button
                             type="button"
                             onClick={() => {
-                              if (isListed) {
-                                toggleListingMutation.mutate({
-                                  id: product.id,
-                                  is_listed: false,
-                                });
-                              } else {
-                                // Let backend compute display price (percentage margin or base price)
-                                toggleListingMutation.mutate({
-                                  id: product.id,
-                                  is_listed: true,
-                                });
-                              }
+                              approvalMutation.mutate({
+                                id: product.id,
+                                is_active: !isApproved,
+                              });
                             }}
                             className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium border transition-colors ${
-                              isListed
+                              isApproved
                                 ? "border-red-500 text-red-600 hover:bg-red-50"
                                 : "border-emerald-500 text-emerald-600 hover:bg-emerald-50"
                             }`}
                           >
-                            {isListed ? "Unlist" : "List product"}
+                            {isApproved ? "Unapprove" : "Approve"}
                           </button>
                         </div>
                       </td>

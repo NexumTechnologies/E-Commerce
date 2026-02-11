@@ -6,7 +6,7 @@ import SignInPromo from "@/components/auth/SignInPromo";
 
 export default function BuyerRegisterStep2Page() {
   const router = useRouter();
-  const role: "buyer" = "buyer";
+  const role = "buyer" as const;
 
   return (
     <div className="min-h-screen bg-white">

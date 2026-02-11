@@ -5,20 +5,24 @@ import { useState } from "react";
 import SellerRegisterStep1 from "@/components/auth/SellerRegisterStep1";
 import SignInPromo from "@/components/auth/SignInPromo";
 
-export default function RegisterPage() {
-  const [role, setRole] = useState<"seller" | "buyer" | "customer">("seller");
+type RegisterRole = "seller" | "buyer" | "customer";
 
-  const Tab = ({
-    id,
-    label,
-  }: {
-    id: "seller" | "buyer" | "customer";
-    label: string;
-  }) => (
+function RoleTab({
+  id,
+  label,
+  active,
+  onSelect,
+}: {
+  id: RegisterRole;
+  label: string;
+  active: boolean;
+  onSelect: (id: RegisterRole) => void;
+}) {
+  return (
     <button
-      onClick={() => setRole(id)}
+      onClick={() => onSelect(id)}
       className={`px-4 py-2 rounded-t-lg font-medium border-b-2 -mb-px transition-colors ${
-        role === id
+        active
           ? "bg-white border-orange text-orange"
           : "bg-gray-50 border-transparent text-gray-600 hover:text-orange"
       }`}
@@ -26,6 +30,10 @@ export default function RegisterPage() {
       {label}
     </button>
   );
+}
+
+export default function RegisterPage() {
+  const [role, setRole] = useState<RegisterRole>("seller");
 
   return (
     <div className="min-h-screen bg-white">
@@ -36,9 +44,9 @@ export default function RegisterPage() {
           <div className="w-full max-w-md">
             <div className="mb-6">
               <div className="flex gap-2">
-                <Tab id="seller" label="Seller" />
-                <Tab id="buyer" label="Buyer" />
-                <Tab id="customer" label="Customer" />
+                <RoleTab id="seller" label="Seller" active={role === "seller"} onSelect={setRole} />
+                <RoleTab id="buyer" label="Buyer" active={role === "buyer"} onSelect={setRole} />
+                <RoleTab id="customer" label="Customer" active={role === "customer"} onSelect={setRole} />
               </div>
             </div>
             <SellerRegisterStep1 role={role} />
@@ -63,9 +71,9 @@ export default function RegisterPage() {
         </div>
         <div className="px-4 py-8 bg-white">
           <div className="mb-6 flex gap-2 justify-center">
-            <Tab id="seller" label="Seller" />
-            <Tab id="buyer" label="Buyer" />
-            <Tab id="customer" label="Customer" />
+            <RoleTab id="seller" label="Seller" active={role === "seller"} onSelect={setRole} />
+            <RoleTab id="buyer" label="Buyer" active={role === "buyer"} onSelect={setRole} />
+            <RoleTab id="customer" label="Customer" active={role === "customer"} onSelect={setRole} />
           </div>
           <SellerRegisterStep1 role={role} />
           <div className="mt-8 text-center">

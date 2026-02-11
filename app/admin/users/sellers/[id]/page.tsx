@@ -9,8 +9,8 @@ function formatDate(value: string | null | undefined) {
   if (!value) return "-";
   try {
     return new Date(value).toLocaleString();
-  } catch (e) {
-    return value as string;
+  } catch {
+    return value;
   }
 }
 
@@ -47,9 +47,10 @@ export default function SellerDetailPage() {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["admin-user", "seller", id] });
-      queryClient.setQueryData(["admin-user", "seller", id], (old: any) => {
-        const updated = res?.data || {};
-        return { ...old, data: updated };
+      queryClient.setQueryData(["admin-user", "seller", id], (old: unknown) => {
+        const updated = (res as { data?: unknown })?.data ?? {};
+        const previous = (old as { [key: string]: unknown }) ?? {};
+        return { ...previous, data: updated };
       });
       setToast({ show: true, message: res?.message || "User status updated" });
       setTimeout(() => setToast({ show: false, message: "" }), 3000);
@@ -68,15 +69,16 @@ export default function SellerDetailPage() {
       const updatedSeller = res?.data || {};
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["admin-user", "seller", id] });
-      queryClient.setQueryData(["admin-user", "seller", id], (old: any) => {
-        if (!old?.data) return old;
+      queryClient.setQueryData(["admin-user", "seller", id], (old: unknown) => {
+        const previous = (old as { data?: { Seller?: Record<string, unknown> } } | undefined) ?? undefined;
+        if (!previous?.data) return old;
         return {
-          ...old,
+          ...previous,
           data: {
-            ...old.data,
+            ...previous.data,
             Seller: {
-              ...(old.data.Seller || {}),
-              ...(updatedSeller || {}),
+              ...(previous.data.Seller ?? {}),
+              ...((updatedSeller as Record<string, unknown>) ?? {}),
             },
           },
         };

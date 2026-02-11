@@ -3,13 +3,24 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-
-import { useMutation } from "@tanstack/react-query";
 import {
   registerUser,
   createSellerProfile,
   createBuyerProfile,
 } from "@/lib/api";
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object") {
+    const maybeMessage = (error as { message?: unknown }).message;
+    if (typeof maybeMessage === "string" && maybeMessage.trim()) return maybeMessage;
+
+    const responseMessage = (error as { response?: { data?: { message?: unknown } } })
+      .response?.data?.message;
+    if (typeof responseMessage === "string" && responseMessage.trim()) return responseMessage;
+  }
+  return "An error occurred. Please try again.";
+}
 
 export default function SellerRegisterStep3({
   role = "seller",
@@ -30,7 +41,7 @@ export default function SellerRegisterStep3({
       // If no previous data, redirect back to step 1
       router.push(`/auth/${role}/register`);
     }
-  }, [router]);
+  }, [router, role]);
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -108,15 +119,26 @@ export default function SellerRegisterStep3({
       // Clear sessionStorage
       sessionStorage.removeItem("registration");
 
-      // Redirect to appropriate dashboard after successful registration
-      if (role === "seller") {
-        router.push("/seller/dashboard");
-      } else {
-        router.push("/buyer/dashboard");
+      const createdUserPayload =
+        (registerResult as { data?: unknown; user?: unknown } | undefined)?.data ??
+        (registerResult as { data?: unknown; user?: unknown } | undefined)?.user ??
+        {};
+      const createdUser = createdUserPayload as { is_varified?: unknown };
+      const isVarified = typeof createdUser.is_varified === "boolean" ? createdUser.is_varified : false;
+
+      // If user is not verified, show pending screen (same behavior as login)
+      if (isVarified === false) {
+        router.push("/auth/verification");
+        router.refresh();
+        return;
       }
+
+      // Redirect to appropriate dashboard after successful registration
+      if (role === "seller") router.push("/seller/dashboard");
+      else router.push("/buyer/dashboard");
       router.refresh();
-    } catch (err: any) {
-      setError(err?.message || "An error occurred. Please try again.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
       setLoading(false);
     }
   };

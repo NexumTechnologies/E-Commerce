@@ -262,8 +262,8 @@ export default function SellerProductsPage() {
                         </span>
                       )}
                       {product.is_active === false && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-700 whitespace-nowrap">
-                          Disabled
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">
+                          Pending approval
                         </span>
                       )}
                     </div>
@@ -703,10 +703,12 @@ export default function SellerProductsPage() {
                   <button
                     type="button"
                     className="rounded-md border px-3 py-1.5 text-yellow-700 border-yellow-500 hover:bg-yellow-50 font-medium"
-                    disabled={toggleStatusMutation.isPending}
+                    disabled={toggleStatusMutation.isPending || selectedProduct?.is_active === false}
                     onClick={() => {
                       if (!selectedProduct) return;
-                      const next = !selectedProduct.is_active;
+                      // Sellers can only disable an already-approved product.
+                      // Enabling requires admin approval.
+                      const next = false;
                       setSelectedProduct({ ...selectedProduct, is_active: next });
                       toggleStatusMutation.mutate({
                         id: selectedProduct.id,
@@ -714,7 +716,7 @@ export default function SellerProductsPage() {
                       });
                     }}
                   >
-                    {selectedProduct?.is_active === false ? "Enable" : "Disable"}
+                    {selectedProduct?.is_active === false ? "Pending approval" : "Disable"}
                   </button>
                   <button
                     type="button"

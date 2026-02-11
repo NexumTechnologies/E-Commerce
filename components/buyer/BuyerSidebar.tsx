@@ -23,9 +23,9 @@ export default function BuyerSidebar() {
 
   const items = [
     { href: "/buyer/dashboard", label: "Dashboard" },
-    { href: "/buyer/dashboard/browse-products", label: "Products" },
-    { href: "/buyer/dashboard/cart", label: "Cart" },
-    { href: "/buyer/dashboard/orders", label: "My Orders" },
+    { href: "/buyer/dashboard/products", label: "My Products" },
+    { href: "/buyer/dashboard/orders", label: "Purchases" },
+    { href: "/buyer/dashboard/sales-orders", label: "Sales Orders" },
     // { href: "/buyer/dashboard/invoices", label: "Invoices" },
     // { href: "/buyer/dashboard/payments", label: "Payments" },
     // { href: "/buyer/dashboard/wishlist", label: "Wishlist" },
