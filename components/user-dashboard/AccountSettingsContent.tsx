@@ -20,11 +20,29 @@ import {
   FileText
 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type SettingsView = "main" | "profile" | "member_profile" | "connected_accounts" | "tax_info" | "password" | "email" | "phone" | "privacy" | "notifications" | "ads";
 
 export default function AccountSettingsContent() {
   const [currentView, setCurrentView] = useState<SettingsView>("main");
+  const router = useRouter();
+
+  const handleLogout = () => {
+    try {
+      sessionStorage.clear();
+      localStorage.removeItem("registration");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("auth-change"));
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+    router.replace("/");
+    router.refresh();
+  };
 
   const handleCopyMemberId = () => {
     navigator.clipboard.writeText("eg39126748602orzd");
@@ -103,7 +121,11 @@ export default function AccountSettingsContent() {
             >
               Edit Profile
             </button>
-            <button className="px-8 py-3 bg-orange text-white rounded-2xl font-bold hover:shadow-orange/30 hover:shadow-2xl transition-all flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="px-8 py-3 bg-orange text-white rounded-2xl font-bold hover:shadow-orange/30 hover:shadow-2xl transition-all flex items-center justify-center gap-2"
+            >
               <LogOut className="w-5 h-5" />
               Sign out
             </button>

@@ -39,20 +39,39 @@ export default function SellerDetailPage() {
 
   const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: "" });
 
-  const toggleMutation = useMutation({
+  const approveSellerMutation = useMutation({
     mutationFn: async () => {
-      const resp = await api.patch(`/users/${id}/toggle-status`);
-      return resp.data;
+      const user = data?.data;
+      const seller = user?.Seller;
+
+      let userResp: any = null;
+      let sellerResp: any = null;
+
+      if (!user?.is_varified) {
+        const resp = await api.patch(`/users/${id}/toggle-status`);
+        userResp = resp.data;
+      }
+
+      if (seller?.id && seller?.verification_status !== "approved") {
+        const resp = await api.put("/seller/status", {
+          seller_id: seller.id,
+          verification_status: "approved",
+        });
+        sellerResp = resp.data;
+      }
+
+      return { userResp, sellerResp };
     },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["admin-user", "seller", id] });
-      queryClient.setQueryData(["admin-user", "seller", id], (old: unknown) => {
-        const updated = (res as { data?: unknown })?.data ?? {};
-        const previous = (old as { [key: string]: unknown }) ?? {};
-        return { ...previous, data: updated };
+      setToast({
+        show: true,
+        message:
+          res?.sellerResp?.message ||
+          res?.userResp?.message ||
+          "Seller approved successfully",
       });
-      setToast({ show: true, message: res?.message || "User status updated" });
       setTimeout(() => setToast({ show: false, message: "" }), 3000);
     },
   });
@@ -93,6 +112,24 @@ export default function SellerDetailPage() {
 
   const user = data?.data;
   const seller = user?.Seller;
+  const documents = seller?.documents as
+    | {
+        business_license_url?: string;
+        tax_certificate_url?: string;
+        factory_photo_url?: string;
+        [key: string]: unknown;
+      }
+    | undefined;
+
+  const docItems: Array<{ label: string; url?: string }> = [
+    { label: "Business license", url: documents?.business_license_url },
+    { label: "Tax certificate", url: documents?.tax_certificate_url },
+    { label: "Factory / Warehouse photo", url: documents?.factory_photo_url },
+  ];
+
+  const isImageUrl = (value?: string) =>
+    typeof value === "string" &&
+    /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(value);
 
   return (
     <div className="space-y-6">
@@ -143,13 +180,10 @@ export default function SellerDetailPage() {
                     Verified
                   </span>
                 ) : (
-                  <button
-                    onClick={() => toggleMutation.mutate()}
-                    disabled={toggleMutation.status === "pending"}
-                    className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm disabled:opacity-60"
-                  >
-                    {toggleMutation.status === "pending" ? "Verifying..." : "Verify user"}
-                  </button>
+                  <span className="inline-flex items-center gap-2 bg-amber-50 text-amber-800 px-3 py-1 rounded-full text-sm ring-1 ring-amber-100">
+                    <span className="h-2 w-2 rounded-full bg-amber-500" />
+                    Not verified
+                  </span>
                 )}
               </div>
             </div>
@@ -240,37 +274,80 @@ export default function SellerDetailPage() {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
-                      {seller.verification_status !== "approved" && (
-                        <>
-                          <button
-                            onClick={() =>
-                              sellerStatusMutation.mutate({
-                                sellerId: seller.id,
-                                status: "approved",
-                              })
-                            }
-                            disabled={sellerStatusMutation.status === "pending"}
-                            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-60"
-                          >
-                            {sellerStatusMutation.status === "pending"
-                              ? "Updating..."
-                              : "Approve seller"}
-                          </button>
+                    <div className="mt-6">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">Documents</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {docItems.map((d) => (
+                          <div key={d.label} className="p-4 border rounded-lg">
+                            <div className="text-xs text-gray-500">{d.label}</div>
+                            <div className="mt-2">
+                              {d.url ? (
+                                <a
+                                  href={d.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-sm text-indigo-600 hover:text-indigo-800"
+                                >
+                                  View document
+                                </a>
+                              ) : (
+                                <div className="text-sm text-gray-400">Not provided</div>
+                              )}
+                            </div>
 
-                          <button
-                            onClick={() =>
-                              sellerStatusMutation.mutate({
-                                sellerId: seller.id,
-                                status: "rejected",
-                              })
-                            }
-                            disabled={sellerStatusMutation.status === "pending"}
-                            className="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm disabled:opacity-60"
-                          >
-                            Reject seller
-                          </button>
-                        </>
+                            {d.url && isImageUrl(d.url) && (
+                              <a
+                                href={d.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-3 block overflow-hidden rounded-md border bg-gray-50 hover:opacity-90"
+                                aria-label={`Open ${d.label} in new tab`}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={d.url}
+                                  alt={d.label}
+                                  className="w-full h-28 object-cover"
+                                />
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      {(seller.verification_status !== "approved" || !user?.is_varified) && (
+                        <button
+                          onClick={() => approveSellerMutation.mutate()}
+                          disabled={approveSellerMutation.status === "pending"}
+                          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-60"
+                        >
+                          {approveSellerMutation.status === "pending" && (
+                            <span
+                              className="h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-white"
+                              aria-hidden="true"
+                            />
+                          )}
+                          {approveSellerMutation.status === "pending"
+                            ? "Approving..."
+                            : "Approve seller"}
+                        </button>
+                      )}
+
+                      {seller.verification_status !== "approved" && (
+                        <button
+                          onClick={() =>
+                            sellerStatusMutation.mutate({
+                              sellerId: seller.id,
+                              status: "rejected",
+                            })
+                          }
+                          disabled={sellerStatusMutation.status === "pending"}
+                          className="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm disabled:opacity-60"
+                        >
+                          Reject seller
+                        </button>
                       )}
                     </div>
                   </>

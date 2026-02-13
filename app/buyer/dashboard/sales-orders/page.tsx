@@ -8,6 +8,9 @@ export default function BuyerSalesOrdersPage() {
   const queryClient = useQueryClient();
 
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [activeTab, setActiveTab] = useState<"all" | "pending" | "completed">(
+    "all",
+  );
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["buyer-sales-orders"],
@@ -39,6 +42,19 @@ export default function BuyerSalesOrdersPage() {
 
   const orders = (data as any)?.data || data || [];
 
+  const sortedOrders = [...orders].sort((a: any, b: any) => {
+    const aTime = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const bTime = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return bTime - aTime;
+  });
+
+  const displayOrders = sortedOrders.filter((order: any) => {
+    const status = String(order?.status || "").toLowerCase();
+    if (activeTab === "pending") return status === "pending";
+    if (activeTab === "completed") return status === "delivered";
+    return true;
+  });
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-4">
       <header className="flex items-center justify-between">
@@ -59,6 +75,42 @@ export default function BuyerSalesOrdersPage() {
       </header>
 
       <section className="mt-2 bg-white border rounded-lg p-4">
+        <div className="mb-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab("all")}
+            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+              activeTab === "all"
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("pending")}
+            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+              activeTab === "pending"
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            Pending
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("completed")}
+            className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+              activeTab === "completed"
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            Completed
+          </button>
+        </div>
+
         {isLoading ? (
           <div className="py-8 text-center text-sm text-slate-500">
             Loading your sales orders...
@@ -70,6 +122,10 @@ export default function BuyerSalesOrdersPage() {
         ) : !orders.length ? (
           <div className="py-8 text-center text-sm text-slate-500">
             You have not received any orders yet.
+          </div>
+        ) : !displayOrders.length ? (
+          <div className="py-8 text-center text-sm text-slate-500">
+            No orders found for this tab.
           </div>
         ) : (
           <table className="w-full text-sm">
@@ -85,7 +141,7 @@ export default function BuyerSalesOrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {orders.map((order: any) => (
+              {displayOrders.map((order: any) => (
                 <tr key={order.id} className="align-top">
                   <td className="py-2 pr-4">
                     <div className="font-medium text-slate-900">#{order.id}</div>

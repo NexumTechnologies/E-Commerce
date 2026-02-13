@@ -17,6 +17,7 @@ export default function BuyerApprovalsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [pendingUserId, setPendingUserId] = useState<number | null>(null);
   const size = 10;
   const queryClient = useQueryClient();
 
@@ -45,8 +46,14 @@ export default function BuyerApprovalsPage() {
     mutationFn: async (userId: number) => {
       await api.patch(`/users/${userId}/toggle-status`);
     },
+    onMutate: (userId) => {
+      setPendingUserId(userId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-approvals", "buyer"] });
+    },
+    onSettled: () => {
+      setPendingUserId(null);
     },
   });
 
@@ -119,7 +126,7 @@ export default function BuyerApprovalsPage() {
                   {users.map((b: any) => (
                     <li
                       key={b.id}
-                      className="flex flex-col gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-[1px] hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
+                      className="flex flex-col gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-px hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-lg font-semibold text-indigo-700 overflow-hidden">
@@ -153,7 +160,15 @@ export default function BuyerApprovalsPage() {
                           disabled={approveMutation.isPending}
                           className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60"
                         >
-                          {approveMutation.isPending ? "Approving..." : "Approve"}
+                          {approveMutation.isPending && pendingUserId === b.id && (
+                            <span
+                              className="h-3 w-3 animate-spin rounded-full border-2 border-white/60 border-t-white"
+                              aria-hidden="true"
+                            />
+                          )}
+                          {approveMutation.isPending && pendingUserId === b.id
+                            ? "Approving..."
+                            : "Approve"}
                         </button>
                       </div>
                     </li>

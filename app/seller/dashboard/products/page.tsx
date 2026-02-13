@@ -17,6 +17,7 @@ export default function SellerProductsPage() {
     description: "",
     price: "",
     quantity: "",
+    min_order_quantity: "1",
     category_id: "",
     image_urls: "",
   });
@@ -94,6 +95,7 @@ export default function SellerProductsPage() {
         description: form.description,
         price: Number(form.price),
         quantity: Number(form.quantity),
+        min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
         category_id: Number(form.category_id),
         // Prefer uploaded URLs; fall back to manual comma-separated input
         image_url:
@@ -117,6 +119,7 @@ export default function SellerProductsPage() {
         description: "",
         price: "",
         quantity: "",
+        min_order_quantity: "1",
         category_id: "",
         image_urls: "",
       });
@@ -134,6 +137,7 @@ export default function SellerProductsPage() {
         description: form.description,
         price: Number(form.price),
         quantity: Number(form.quantity),
+        min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
         category_id: Number(form.category_id),
         image_url:
           uploadedUrls.length > 0
@@ -158,6 +162,7 @@ export default function SellerProductsPage() {
         description: "",
         price: "",
         quantity: "",
+        min_order_quantity: "1",
         category_id: "",
         image_urls: "",
       });
@@ -187,6 +192,7 @@ export default function SellerProductsPage() {
               description: "",
               price: "",
               quantity: "",
+              min_order_quantity: "1",
               category_id: "",
               image_urls: "",
             });
@@ -371,6 +377,25 @@ export default function SellerProductsPage() {
                     required
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Minimum order quantity
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  value={form.min_order_quantity}
+                  onChange={(e) =>
+                    setForm({ ...form, min_order_quantity: e.target.value })
+                  }
+                  required
+                />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Buyers can’t purchase below this quantity.
+                </p>
               </div>
 
               <div>
@@ -647,6 +672,10 @@ export default function SellerProductsPage() {
                     <span className="font-medium">Stock</span>
                     <span>{selectedProduct.quantity}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Min order</span>
+                    <span>{selectedProduct.min_order_quantity ?? 1}</span>
+                  </div>
                 </div>
                 <div className="space-y-1">
                   {selectedProduct.createdAt && (
@@ -685,6 +714,7 @@ export default function SellerProductsPage() {
                       description: selectedProduct.description || "",
                       price: String(selectedProduct.price ?? ""),
                       quantity: String(selectedProduct.quantity ?? ""),
+                      min_order_quantity: String(selectedProduct.min_order_quantity ?? 1),
                       category_id: String(
                         selectedProduct.category_id || selectedProduct.Category?.id || "",
                       ),

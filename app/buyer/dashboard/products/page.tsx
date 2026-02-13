@@ -23,6 +23,7 @@ type Product = {
   is_active?: boolean;
   image_url?: string | string[] | null;
   Category?: ProductCategory;
+  min_order_quantity?: number | string;
 };
 
 type ProductsResponse =
@@ -63,11 +64,25 @@ export default function BuyerProductsPage() {
     description: "",
     price: "",
     quantity: "",
+    min_order_quantity: "1",
     category_id: "",
     image_urls: "",
   });
   const [uploading, setUploading] = useState(false);
   const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+
+  const isCreateReady =
+    form.name.trim().length > 0 &&
+    form.description.trim().length > 0 &&
+    String(form.price).trim().length > 0 &&
+    Number(form.price) > 0 &&
+    String(form.quantity).trim().length > 0 &&
+    Number(form.quantity) > 0 &&
+    String(form.min_order_quantity).trim().length > 0 &&
+    Number(form.min_order_quantity) >= 1 &&
+    Number(form.quantity) >= Number(form.min_order_quantity) &&
+    String(form.category_id).trim().length > 0 &&
+    uploadedUrls.length > 0;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["buyer-products"],
@@ -118,6 +133,7 @@ export default function BuyerProductsPage() {
         description: form.description,
         price: Number(form.price),
         quantity: Number(form.quantity),
+        min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
         category_id: Number(form.category_id),
         image_url:
           uploadedUrls.length > 0
@@ -140,6 +156,7 @@ export default function BuyerProductsPage() {
         description: "",
         price: "",
         quantity: "",
+        min_order_quantity: "1",
         category_id: "",
         image_urls: "",
       });
@@ -151,18 +168,12 @@ export default function BuyerProductsPage() {
   const updateMutation = useMutation({
     mutationFn: async () => {
       const token = localStorage.getItem("token");
-      const payload: {
-        name: string;
-        description: string;
-        price: number;
-        quantity: number;
-        category_id: number;
-        image_url?: string[];
-      } = {
+      const basePayload = {
         name: form.name,
         description: form.description,
         price: Number(form.price),
         quantity: Number(form.quantity),
+        min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
         category_id: Number(form.category_id),
       };
 
@@ -174,7 +185,7 @@ export default function BuyerProductsPage() {
               .map((u) => u.trim())
               .filter(Boolean);
 
-      if (urls.length > 0) payload.image_url = urls;
+      const payload = urls.length > 0 ? { ...basePayload, image_url: urls } : basePayload;
 
       const res = await api.put(`/product/${editingProductId}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
@@ -190,6 +201,7 @@ export default function BuyerProductsPage() {
         description: "",
         price: "",
         quantity: "",
+        min_order_quantity: "1",
         category_id: "",
         image_urls: "",
       });
@@ -206,6 +218,7 @@ export default function BuyerProductsPage() {
       description: "",
       price: "",
       quantity: "",
+      min_order_quantity: "1",
       category_id: "",
       image_urls: "",
     });
@@ -216,19 +229,21 @@ export default function BuyerProductsPage() {
   const openEdit = (product: Product) => {
     setFormMode("edit");
     setEditingProductId(product.id);
+    const existingImages: string[] = Array.isArray(product.image_url)
+      ? product.image_url
+      : product.image_url
+        ? [String(product.image_url)]
+        : [];
     setForm({
       name: product.name || "",
       description: product.description || "",
       price: String(product.price ?? ""),
       quantity: String(product.quantity ?? ""),
+      min_order_quantity: String(product.min_order_quantity ?? 1),
       category_id: String(product.category_id ?? ""),
-      image_urls: Array.isArray(product.image_url)
-        ? product.image_url.join(", ")
-        : product.image_url
-          ? String(product.image_url)
-          : "",
+      image_urls: existingImages.join(", "),
     });
-    setUploadedUrls([]);
+    setUploadedUrls(existingImages);
     setIsModalOpen(true);
   };
 
@@ -274,40 +289,37 @@ export default function BuyerProductsPage() {
             No products found.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="text-left text-slate-500 border-b">
-                <tr>
-                  <th className="py-2 pr-4">Product</th>
-                  <th className="py-2 pr-4">Category</th>
-                  <th className="py-2 pr-4">Status</th>
-                  <th className="py-2 pr-4">Price</th>
-                  <th className="py-2 pr-4">Stock</th>
-                  <th className="py-2 pr-0 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {products.map((product) => {
-                  const isApproved = Boolean(product.is_active);
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {products.map((product) => {
+              const isApproved = Boolean(product.is_active);
+              const images: string[] = Array.isArray(product.image_url)
+                ? product.image_url
+                : product.image_url
+                  ? [String(product.image_url)]
+                  : [];
+              const primaryImage = images[0] || "/dummy-product.png";
 
-                  return (
-                    <tr key={product.id} className="align-top">
-                      <td className="py-2 pr-4 max-w-xs">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedProduct(product);
-                            setSelectedImageIndex(0);
-                          }}
-                          className="font-medium text-slate-900 truncate hover:underline text-left"
-                        >
-                          {product.name}
-                        </button>
-                      </td>
-                      <td className="py-2 pr-4 text-xs text-slate-700">
-                        {product.Category?.name || "-"}
-                      </td>
-                      <td className="py-2 pr-4">
+              return (
+                <div
+                  key={product.id}
+                  className="group rounded-xl border bg-white overflow-hidden hover:shadow-sm transition-shadow"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setSelectedImageIndex(0);
+                    }}
+                    className="w-full text-left"
+                  >
+                    <div className="relative w-full aspect-4/3 bg-slate-100 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={primaryImage}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
+                      />
+                      <div className="absolute left-3 top-3">
                         {isApproved ? (
                           <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-50 text-emerald-700">
                             Approved
@@ -317,38 +329,71 @@ export default function BuyerProductsPage() {
                             Pending
                           </span>
                         )}
-                      </td>
-                      <td className="py-2 pr-4">
-                        <span className="font-semibold text-slate-900">
-                          {product.price} AED
-                        </span>
-                      </td>
-                      <td className="py-2 pr-4 text-xs text-slate-700">
-                        {product.quantity}
-                      </td>
-                      <td className="py-2 pr-0 text-right">
-                        <div className="inline-flex items-center justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => openEdit(product)}
-                            className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium border-slate-300 text-slate-700 hover:bg-slate-50"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => deleteMutation.mutate(product.id)}
-                            className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium border-red-300 text-red-700 hover:bg-red-50"
-                          >
-                            Delete
-                          </button>
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-slate-900 truncate">
+                            {product.name}
+                          </h3>
+                          <p className="mt-0.5 text-[11px] text-slate-500 truncate">
+                            {product.Category?.name || "Uncategorized"}
+                          </p>
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        <div className="shrink-0 text-right">
+                          <div className="text-xs text-slate-500">Price</div>
+                          <div className="font-semibold text-slate-900">
+                            {product.price} AED
+                          </div>
+                        </div>
+                      </div>
+
+                      {product.description ? (
+                        <p className="text-xs text-slate-600 line-clamp-2">
+                          {product.description}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-slate-400">No description</p>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div className="rounded-lg border bg-slate-50 px-3 py-2">
+                          <div className="text-[11px] text-slate-500">Stock</div>
+                          <div className="text-sm font-semibold text-slate-900">
+                            {product.quantity ?? "-"}
+                          </div>
+                        </div>
+                        <div className="rounded-lg border bg-slate-50 px-3 py-2">
+                          <div className="text-[11px] text-slate-500">Images</div>
+                          <div className="text-sm font-semibold text-slate-900">
+                            {images.length}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <div className="px-4 pb-4 flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(product)}
+                      className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium border-slate-300 text-slate-700 hover:bg-slate-50"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteMutation.mutate(product.id)}
+                      className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
@@ -528,6 +573,24 @@ export default function BuyerProductsPage() {
                   className="mt-1 w-full border rounded px-3 py-2"
                 />
               </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-600">
+                  Minimum order quantity
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  value={form.min_order_quantity}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, min_order_quantity: e.target.value }))
+                  }
+                  className="mt-1 w-full border rounded px-3 py-2"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Buyers can’t purchase below this quantity.
+                </p>
+              </div>
               <div className="md:col-span-2">
                 <label className="text-xs font-semibold text-slate-600">
                   Description
@@ -537,30 +600,143 @@ export default function BuyerProductsPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, description: e.target.value }))
                   }
-                  className="mt-1 w-full border rounded px-3 py-2 min-h-[90px]"
+                  className="mt-1 w-full border rounded px-3 py-2 min-h-22.5"
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="text-xs font-semibold text-slate-600">
-                  Image URLs (comma separated)
-                </label>
-                <input
-                  value={form.image_urls}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, image_urls: e.target.value }))
-                  }
-                  className="mt-1 w-full border rounded px-3 py-2"
-                />
-                {uploading && (
-                  <p className="mt-1 text-[11px] text-slate-500">
-                    Uploading...
+                <div className="mt-2 border-t pt-4 space-y-3">
+                  <p className="text-sm font-semibold text-slate-800">
+                    Product Images
                   </p>
-                )}
-                {uploadedUrls.length > 0 && (
-                  <p className="mt-1 text-[11px] text-emerald-700">
-                    Uploaded: {uploadedUrls.length} file(s)
-                  </p>
-                )}
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Choose image files
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <label
+                        htmlFor="product-images"
+                        aria-disabled={uploading}
+                        className={`inline-flex items-center px-3 py-1.5 rounded-md border text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 cursor-pointer ${
+                          uploading ? "pointer-events-none opacity-60" : ""
+                        }`}
+                      >
+                        Choose images
+                      </label>
+                      <span className="text-[11px] text-slate-500">
+                        JPG, PNG etc. You can select multiple files.
+                      </span>
+                    </div>
+                    <input
+                      id="product-images"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const files = e.target.files;
+                        if (!files || files.length === 0) return;
+
+                        const formData = new FormData();
+                        Array.from(files).forEach((file) =>
+                          formData.append("images", file),
+                        );
+
+                        try {
+                          setUploading(true);
+                          const res = await api.post(
+                            "/upload/multiple",
+                            formData,
+                            {
+                              headers: {
+                                "Content-Type": "multipart/form-data",
+                              },
+                            },
+                          );
+                          const urls =
+                            res.data?.urls || res.data?.url || res.data || [];
+                          const newUrls = Array.isArray(urls) ? urls : [urls];
+                          setUploadedUrls((prev) => {
+                            const next = [...prev, ...newUrls];
+                            setForm((f) => ({ ...f, image_urls: next.join(", ") }));
+                            return next;
+                          });
+                        } catch (err) {
+                          console.error("Image upload failed", err);
+                          setUploadedUrls([]);
+                          setForm((f) => ({ ...f, image_urls: "" }));
+                        } finally {
+                          setUploading(false);
+                        }
+                      }}
+                    />
+                    {uploading && (
+                      <div className="mt-2 inline-flex items-center gap-2 rounded-md border bg-slate-50 px-3 py-2">
+                        <span
+                          className="h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700"
+                          aria-hidden="true"
+                        />
+                        <p className="text-xs text-slate-600">
+                          Uploading images...
+                        </p>
+                      </div>
+                    )}
+                    {uploadedUrls.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        <p className="text-xs text-green-600">
+                          {uploadedUrls.length} image(s) uploaded. Click × to
+                          remove.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {uploadedUrls.map((url) => (
+                            <div
+                              key={url}
+                              className="relative w-16 h-16 border rounded overflow-hidden bg-slate-50"
+                            >
+                              <button
+                                type="button"
+                                className="absolute -top-1 -right-1 bg-white text-xs rounded-full border px-1 leading-none shadow"
+                                onClick={() =>
+                                  setUploadedUrls((prev) => {
+                                    const next = prev.filter((u) => u !== url);
+                                    setForm((f) => ({ ...f, image_urls: next.join(", ") }));
+                                    return next;
+                                  })
+                                }
+                              >
+                                ×
+                              </button>
+                              <img
+                                src={url}
+                                alt="Product"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Or paste image URLs (comma separated)
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border rounded px-3 py-2 text-sm"
+                      placeholder="https://... , https://..."
+                      value={form.image_urls}
+                      onChange={(e) =>
+                        setForm({ ...form, image_urls: e.target.value })
+                      }
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      If you upload files, those URLs will be used; otherwise,
+                      we will use the URLs you paste here.
+                    </p>
+                  </div> */}
+                </div>
               </div>
             </div>
 
@@ -574,7 +750,12 @@ export default function BuyerProductsPage() {
               </button>
               <button
                 type="button"
-                disabled={createMutation.isPending || updateMutation.isPending}
+                disabled={
+                  uploading ||
+                  createMutation.isPending ||
+                  updateMutation.isPending ||
+                  (formMode === "create" && !isCreateReady)
+                }
                 onClick={() => {
                   if (formMode === "create") createMutation.mutate();
                   else updateMutation.mutate();
@@ -583,8 +764,8 @@ export default function BuyerProductsPage() {
               >
                 {formMode === "create"
                   ? createMutation.isPending
-                    ? "Creating..."
-                    : "Create"
+                    ? "Posting..."
+                    : "Post product"
                   : updateMutation.isPending
                     ? "Saving..."
                     : "Save"}

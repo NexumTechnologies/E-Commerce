@@ -1,4 +1,9 @@
 import axios from "axios";
+import {
+  decrementPendingRequests,
+  incrementPendingRequests,
+} from "@/lib/requestTracker";
+import { notifyError } from "@/lib/notifications";
 
 // Prefer an explicit NEXT_PUBLIC_API_BASE_URL when provided (for staging/backend).
 // For local Next.js API routes default to relative "/api" so axios will call the app's
@@ -12,5 +17,31 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+api.interceptors.request.use(
+  (config) => {
+    (config as any).__tracked = true;
+    incrementPendingRequests();
+    return config;
+  },
+  (error) => {
+    decrementPendingRequests();
+    return Promise.reject(error);
+  },
+);
+
+api.interceptors.response.use(
+  (response) => {
+    const cfg = response?.config as any;
+    if (cfg?.__tracked) decrementPendingRequests();
+    return response;
+  },
+  (error) => {
+    const cfg = error?.config as any;
+    if (cfg?.__tracked) decrementPendingRequests();
+    notifyError(error);
+    return Promise.reject(error);
+  },
+);
 
 export default api;

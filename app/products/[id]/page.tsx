@@ -55,6 +55,24 @@ export default function ProductDetailPage() {
 
   const product = data?.data || data?.product || data || null;
 
+  const userRole = (() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as { role?: string };
+      return parsed?.role ?? null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const moq = product && product.min_order_quantity != null
+    ? Math.max(1, Math.floor(Number(product.min_order_quantity) || 1))
+    : 1;
+  const minAllowedQty = userRole === "buyer" ? moq : 1;
+  const effectiveQuantity = Math.max(minAllowedQty, Math.floor(Number(quantity) || minAllowedQty));
+
   const basePrice = product ? Number(product.price) || 0 : 0;
   const customerPriceRaw = product && product.customer_price != null
     ? Number(product.customer_price)
@@ -110,13 +128,13 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
             {/* Left: Images */}
             <div className="space-y-4">
-              <div className="relative w-full aspect-[4/3] rounded-2xl bg-white shadow-sm border border-slate-100 overflow-hidden">
+              <div className="relative w-full aspect-4/3 rounded-2xl bg-white shadow-sm border border-slate-100 overflow-hidden">
                 {selectedImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={selectedImage}
                     alt={product.name}
-                    className="w-full h-full object-contain p-4 bg-gradient-to-br from-slate-50 to-slate-100"
+                    className="w-full h-full object-contain p-4 bg-linear-to-br from-slate-50 to-slate-100"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
@@ -200,26 +218,38 @@ export default function ProductDetailPage() {
                 <div className="text-xs uppercase tracking-wide text-slate-500 mb-1.5">
                   Quantity
                 </div>
+                {userRole === "buyer" && (
+                  <div className="text-[11px] text-slate-500 mb-2">
+                    Minimum order: <span className="font-medium">{moq}</span>
+                  </div>
+                )}
                 <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 overflow-hidden">
                   <button
                     type="button"
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    disabled={quantity <= 1 || product.quantity === 0}
+                    onClick={() =>
+                      setQuantity((q) =>
+                        Math.max(minAllowedQty, (Number(q) || minAllowedQty) - 1),
+                      )
+                    }
+                    disabled={effectiveQuantity <= minAllowedQty || product.quantity === 0}
                     className="w-9 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-lg"
                   >
                     −
                   </button>
                   <div className="w-10 text-center text-sm font-medium text-slate-900">
-                    {quantity}
+                    {effectiveQuantity}
                   </div>
                   <button
                     type="button"
                     onClick={() =>
                       setQuantity((q) =>
-                        Math.min(product.quantity || 1, q + 1),
+                        Math.min(
+                          product.quantity || 1,
+                          Math.max(minAllowedQty, Math.floor(Number(q) || minAllowedQty)) + 1,
+                        ),
                       )
                     }
-                    disabled={quantity >= (product.quantity || 0) || product.quantity === 0}
+                    disabled={effectiveQuantity >= (product.quantity || 0) || product.quantity === 0}
                     className="w-9 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-lg"
                   >
                     +
@@ -241,7 +271,7 @@ export default function ProductDetailPage() {
                     }
                     addToCartMutation.mutate({
                       product_id: product.id,
-                      quantity,
+                      quantity: effectiveQuantity,
                     });
                   }}
                   disabled={addToCartMutation.isPending || product.quantity === 0}
@@ -266,7 +296,7 @@ export default function ProductDetailPage() {
                     addToCartMutation.mutate(
                       {
                         product_id: product.id,
-                        quantity,
+                        quantity: effectiveQuantity,
                       },
                       {
                         onSuccess: () => {

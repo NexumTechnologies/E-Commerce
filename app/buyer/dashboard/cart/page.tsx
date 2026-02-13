@@ -69,9 +69,12 @@ export default function BuyerCartPage() {
   const handleChangeQuantity = (item: any, delta: number) => {
     const currentQty = item.quantity || 1;
     const stock = item.Product?.quantity ?? null;
+    const moq = item.Product?.min_order_quantity != null
+      ? Math.max(1, Math.floor(Number(item.Product.min_order_quantity) || 1))
+      : 1;
     const nextQty = currentQty + delta;
 
-    if (nextQty < 1) return;
+    if (nextQty < moq) return;
     if (stock !== null && nextQty > stock) return;
 
     updateQuantityMutation.mutate({ id: item.id, quantity: nextQty });
@@ -138,7 +141,15 @@ export default function BuyerCartPage() {
                         onClick={() => handleChangeQuantity(item, -1)}
                         disabled={
                           updateQuantityMutation.isPending ||
-                          item.quantity <= 1
+                          item.quantity <=
+                            (item.Product?.min_order_quantity != null
+                              ? Math.max(
+                                  1,
+                                  Math.floor(
+                                    Number(item.Product.min_order_quantity) || 1,
+                                  ),
+                                )
+                              : 1)
                         }
                         className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs"
                       >

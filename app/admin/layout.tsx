@@ -46,15 +46,17 @@ const ADMIN_NAV: AdminNavSection[] = [
   },
   {
     title: "Product Management",
-    items: [
-      { href: "/admin/products", label: "All Products" },
-      { href: "/admin/products/percentage", label: "Listing Percentage" },
-    ],
+    items: [{ href: "/admin/products", label: "All Products" }],
+  },
+  {
+    title: "Commission",
+    items: [{ href: "/admin/orders/percentage", label: "Order Percentage" }],
   },
   {
     title: "Order Management",
     items: [
       { href: "/admin/orders", label: "All Orders" },
+      { href: "/admin/orders/my-sales", label: "My Sales Orders" },
       { href: "/admin/orders/pending", label: "Pending Orders" },
       { href: "/admin/orders/completed", label: "Completed Orders" },
       { href: "/admin/orders/cancelled", label: "Cancelled / Refunded" },
@@ -79,11 +81,7 @@ function getAdminPageTitle(pathname: string | null) {
 
   if (match) return match.label;
 
-  const segment = pathname
-    .replace(/\/$/, "")
-    .split("/")
-    .filter(Boolean)
-    .at(-1);
+  const segment = pathname.replace(/\/$/, "").split("/").filter(Boolean).at(-1);
   if (!segment) return "Admin";
 
   return segment
@@ -125,21 +123,19 @@ export default function AdminLayout({
 
       <div className="flex min-h-screen">
         {/* Desktop sidebar */}
-        <aside className="hidden md:flex w-72 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+        <aside className="hidden md:flex w-72 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:sticky md:top-0 md:h-screen md:overflow-hidden">
           <AdminSidebarHeader />
-          <ScrollArea className="flex-1">
-            <nav className="px-3 py-4">
-              {ADMIN_NAV.map((section) => (
-                <Section key={section.title} title={section.title}>
-                  {section.items.map((item) => (
-                    <NavItem key={item.href} href={item.href}>
-                      {item.label}
-                    </NavItem>
-                  ))}
-                </Section>
-              ))}
-            </nav>
-          </ScrollArea>
+          <nav className="px-4 py-4 space-y-3 flex-1 overflow-hidden">
+            {ADMIN_NAV.map((section) => (
+              <Section key={section.title} title={section.title}>
+                {section.items.map((item) => (
+                  <NavItem key={item.href} href={item.href}>
+                    {item.label}
+                  </NavItem>
+                ))}
+              </Section>
+            ))}
+          </nav>
 
           <div className="p-4 border-t border-sidebar-border">
             <Button
@@ -155,13 +151,17 @@ export default function AdminLayout({
 
         {/* Main */}
         <div className="min-w-0 flex-1">
-          <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-backdrop-filter:bg-background/60">
             <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
               {/* Mobile menu */}
               <div className="md:hidden">
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" size="icon" aria-label="Open admin navigation">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      aria-label="Open admin navigation"
+                    >
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
@@ -178,7 +178,10 @@ export default function AdminLayout({
                     </Button>
                   </SheetTrigger>
 
-                  <SheetContent side="left" className="p-0">
+                  <SheetContent
+                    side="left"
+                    className="p-0 bg-sidebar text-sidebar-foreground border-r border-sidebar-border"
+                  >
                     <SheetHeader className="border-b">
                       <SheetTitle>
                         <Link href="/admin/dashboard" className="font-semibold">
@@ -191,7 +194,11 @@ export default function AdminLayout({
                         {ADMIN_NAV.map((section) => (
                           <Section key={section.title} title={section.title}>
                             {section.items.map((item) => (
-                              <NavItem key={item.href} href={item.href} closeOnMobile>
+                              <NavItem
+                                key={item.href}
+                                href={item.href}
+                                closeOnMobile
+                              >
                                 {item.label}
                               </NavItem>
                             ))}
@@ -239,7 +246,7 @@ export default function AdminLayout({
           </header>
 
           <main id="admin-content" className="px-4 py-6 sm:px-6">
-            <div className="mx-auto w-full max-w-[1400px]">{children}</div>
+            <div className="mx-auto w-full max-w-350">{children}</div>
           </main>
         </div>
       </div>
@@ -251,12 +258,16 @@ function AdminSidebarHeader() {
   return (
     <div className="px-5 py-5 border-b border-sidebar-border">
       <Link href="/admin/dashboard" className="flex items-center gap-2">
-        <div className="size-9 rounded-lg bg-sidebar-accent flex items-center justify-center border border-sidebar-border">
+        <div className="size-10 rounded-xl bg-sidebar-accent flex items-center justify-center border border-sidebar-border shadow-sm">
           <span className="text-sm font-semibold text-sidebar-primary">A</span>
         </div>
         <div className="leading-tight">
-          <div className="text-sm font-semibold">Admin Panel</div>
-          <div className="text-xs text-muted-foreground">Manage your marketplace</div>
+          <div className="text-sm font-semibold tracking-tight">
+            Admin Panel
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Manage your marketplace
+          </div>
         </div>
       </Link>
     </div>
@@ -295,18 +306,23 @@ function Section({
   }, [hasActive]);
 
   return (
-    <div className="mb-2">
+    <div className="">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2 text-[11px] text-muted-foreground uppercase tracking-wide font-semibold hover:bg-sidebar-accent rounded-md"
+        className={cn(
+          "w-full flex items-center justify-between px-2.5 py-2 text-[11px] uppercase tracking-wide font-semibold rounded-lg transition-colors",
+          open
+            ? "text-sidebar-foreground"
+            : "text-muted-foreground hover:text-sidebar-foreground",
+        )}
         aria-expanded={open}
       >
         <span>{title}</span>
         <svg
           className={cn(
             "w-4 h-4 transform transition-transform duration-200",
-            open ? "rotate-90" : "rotate-0"
+            open ? "rotate-90" : "rotate-0",
           )}
           viewBox="0 0 20 20"
           fill="none"
@@ -318,8 +334,8 @@ function Section({
 
       <div
         className={cn(
-          "space-y-1 overflow-hidden transition-[max-height] duration-200",
-          open ? "max-h-96" : "max-h-0"
+          "mt-1 space-y-1 overflow-hidden border-l border-sidebar-border pl-3 ml-2 transition-[max-height] duration-200",
+          open ? "max-h-96" : "max-h-0",
         )}
       >
         {children}
@@ -345,13 +361,22 @@ function NavItem({
       href={href}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "block rounded-md px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        "group relative block rounded-lg px-3 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
         isActive
           ? "bg-sidebar-accent text-sidebar-accent-foreground"
-          : "text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          : "text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
       )}
     >
-      {children}
+      <span
+        className={cn(
+          "absolute left-0 top-1/2 h-5 w-1.5 -translate-y-1/2 rounded-r transition-colors",
+          isActive
+            ? "bg-sidebar-primary"
+            : "bg-transparent group-hover:bg-sidebar-primary/60",
+        )}
+        aria-hidden="true"
+      />
+      <span className="pl-2 block truncate">{children}</span>
     </Link>
   );
 

@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 
-export default function SellerOrdersPage() {
+export default function AdminMySalesOrdersPage() {
   const queryClient = useQueryClient();
 
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
@@ -13,23 +13,21 @@ export default function SellerOrdersPage() {
   );
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["seller-orders"],
+    queryKey: ["admin-my-sales-orders"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const res = await api.get("/order/seller", {
+      const res = await api.get("/order/vendor", {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       return res.data;
     },
   });
 
-  console.log("here is the seller oders", data)
-
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
       const token = localStorage.getItem("token");
       const res = await api.put(
-        `/order/seller/${id}/toggle-status`,
+        `/order/vendor/${id}/toggle-status`,
         { status },
         {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -38,7 +36,7 @@ export default function SellerOrdersPage() {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["seller-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-my-sales-orders"] });
     },
   });
 
@@ -61,9 +59,9 @@ export default function SellerOrdersPage() {
     <div className="max-w-6xl mx-auto p-6 space-y-4">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">My Orders</h1>
+          <h1 className="text-2xl font-bold text-slate-900">My Sales Orders</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Orders placed by buyers for your products.
+            Orders placed by customers for products posted by this admin.
           </p>
         </div>
         <button
@@ -115,11 +113,11 @@ export default function SellerOrdersPage() {
 
         {isLoading ? (
           <div className="py-8 text-center text-sm text-slate-500">
-            Loading your orders...
+            Loading your sales orders...
           </div>
         ) : error ? (
           <div className="py-8 text-center text-sm text-red-500">
-            Failed to load orders.
+            Failed to load sales orders.
           </div>
         ) : !orders.length ? (
           <div className="py-8 text-center text-sm text-slate-500">
@@ -135,8 +133,7 @@ export default function SellerOrdersPage() {
               <tr>
                 <th className="py-2">Order</th>
                 <th className="py-2">Product</th>
-                <th className="py-2">Qty</th>
-                <th className="py-2">Buyer</th>
+                <th className="py-2">Customer</th>
                 <th className="py-2">Amount</th>
                 <th className="py-2">Status</th>
                 <th className="py-2">Date</th>
@@ -147,21 +144,16 @@ export default function SellerOrdersPage() {
               {displayOrders.map((order: any) => (
                 <tr key={order.id} className="align-top">
                   <td className="py-2 pr-4">
-                    <div className="font-medium text-slate-900">
-                      #{order.id}
-                    </div>
+                    <div className="font-medium text-slate-900">#{order.id}</div>
                   </td>
                   <td className="py-2 pr-4 max-w-xs">
                     <div className="text-slate-900 truncate">
                       {order.Product?.name || "Product"}
                     </div>
                   </td>
-                  <td className="py-2 pr-4 text-xs text-slate-700">
-                    {typeof order.quantity === "number" ? order.quantity : "-"}
-                  </td>
                   <td className="py-2 pr-4">
                     <div className="text-slate-900 text-xs">
-                      {order.User?.name || "Buyer"}
+                      {order.User?.name || "Customer"}
                     </div>
                     {order.User?.email && (
                       <div className="text-[11px] text-slate-500">
@@ -190,8 +182,8 @@ export default function SellerOrdersPage() {
                         order.status === "delivered"
                           ? "bg-emerald-50 text-emerald-700"
                           : order.status === "cancelled"
-                          ? "bg-red-50 text-red-600"
-                          : "bg-amber-50 text-amber-700"
+                            ? "bg-red-50 text-red-600"
+                            : "bg-amber-50 text-amber-700"
                       }`}
                     >
                       {order.status}
@@ -271,8 +263,7 @@ export default function SellerOrdersPage() {
                 onClick={() => setSelectedOrder(null)}
                 className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
-                <span className="sr-only">Close</span>
-                ✕
+                <span className="sr-only">Close</span>✕
               </button>
             </div>
 
@@ -297,9 +288,6 @@ export default function SellerOrdersPage() {
                   <p className="mt-1 text-xs text-slate-500">
                     Total amount: {selectedOrder.total_amount} AED
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    Quantity: {typeof selectedOrder.quantity === "number" ? selectedOrder.quantity : "-"}
-                  </p>
                   {typeof selectedOrder.admin_earning_amount === "number" && (
                     <p className="mt-0.5 text-xs text-slate-500">
                       Admin margin: {selectedOrder.admin_earning_amount} AED
@@ -317,8 +305,8 @@ export default function SellerOrdersPage() {
                         selectedOrder.status === "delivered"
                           ? "bg-emerald-50 text-emerald-700"
                           : selectedOrder.status === "cancelled"
-                          ? "bg-red-50 text-red-600"
-                          : "bg-amber-50 text-amber-700"
+                            ? "bg-red-50 text-red-600"
+                            : "bg-amber-50 text-amber-700"
                       }`}
                     >
                       {selectedOrder.status}
@@ -327,36 +315,22 @@ export default function SellerOrdersPage() {
                 </div>
               </div>
 
-              <div className="grid gap-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-700">
-                <div className="flex justify-between gap-4">
-                  <span className="font-medium">Buyer</span>
-                  <span className="text-right">
-                    {selectedOrder.User?.name || "Buyer"}
-                    {selectedOrder.User?.email && (
-                      <>
-                        <br />
-                        <span className="text-slate-500">
-                          {selectedOrder.User.email}
-                        </span>
-                      </>
-                    )}
-                  </span>
-                </div>
-                {selectedOrder.address && (
-                  <div className="flex justify-between gap-4">
-                    <span className="font-medium">Shipping address</span>
-                    <span className="max-w-65 text-right text-slate-600">
-                      {selectedOrder.address}
-                    </span>
+              {selectedOrder.address && (
+                <div className="rounded-lg border bg-slate-50 p-3 text-xs text-slate-700">
+                  <div className="text-[11px] font-semibold text-slate-500">
+                    Delivery address
                   </div>
-                )}
-              </div>
+                  <div className="mt-1 whitespace-pre-wrap">
+                    {selectedOrder.address}
+                  </div>
+                </div>
+              )}
 
-              <div className="flex justify-end gap-3 pt-2 text-xs">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setSelectedOrder(null)}
-                  className="rounded-md border px-3 py-1.5 text-slate-600 hover:bg-slate-50"
+                  className="px-3 py-1.5 rounded-md border text-xs text-slate-700 hover:bg-slate-50"
                 >
                   Close
                 </button>

@@ -60,6 +60,24 @@ export default function BuyerDetailPage() {
 
   const user = data?.data;
   const buyer = user?.Buyer;
+  const documents = buyer?.documents as
+    | {
+        business_license_url?: string;
+        tax_certificate_url?: string;
+        factory_photo_url?: string;
+        [key: string]: unknown;
+      }
+    | undefined;
+
+  const docItems: Array<{ label: string; url?: string }> = [
+    { label: "Business license", url: documents?.business_license_url },
+    { label: "Tax certificate", url: documents?.tax_certificate_url },
+    { label: "Factory / Warehouse photo", url: documents?.factory_photo_url },
+  ];
+
+  const isImageUrl = (value?: string) =>
+    typeof value === "string" &&
+    /\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(value);
 
   return (
     <div className="space-y-6">
@@ -126,7 +144,7 @@ export default function BuyerDetailPage() {
                     disabled={toggleMutation.status === "pending"}
                     className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm disabled:opacity-60"
                   >
-                    {toggleMutation.status === "pending" ? "Verifying..." : "Verify user"}
+                    {toggleMutation.status === "pending" ? "Approving..." : "Approve buyer"}
                   </button>
                 )}
               </div>
@@ -167,6 +185,42 @@ export default function BuyerDetailPage() {
                     <div className="text-xs text-gray-500">Gender</div>
                     <div className="mt-1 font-medium">{buyer?.gender || "-"}</div>
                   </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Documents</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {docItems.map((d) => (
+                    <div key={d.label} className="p-4 border rounded-lg">
+                      <div className="text-xs text-gray-500">{d.label}</div>
+                      <div className="mt-2">
+                        {d.url ? (
+                          <a
+                            href={d.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm text-indigo-600 hover:text-indigo-800"
+                          >
+                            View document
+                          </a>
+                        ) : (
+                          <div className="text-sm text-gray-400">Not provided</div>
+                        )}
+                      </div>
+
+                      {d.url && isImageUrl(d.url) && (
+                        <div className="mt-3 overflow-hidden rounded-md border bg-gray-50">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={d.url}
+                            alt={d.label}
+                            className="w-full h-28 object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
