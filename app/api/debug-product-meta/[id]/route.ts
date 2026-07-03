@@ -14,6 +14,21 @@ type ProductPayload = {
   }> | null;
 };
 
+type ProductResponse =
+  | ProductPayload
+  | {
+      data?: ProductPayload;
+      product?: ProductPayload;
+    };
+
+type FetchProductResult = {
+  ok: boolean;
+  status: number;
+  requestUrl: string;
+  rawText: string;
+  product: ProductPayload | null;
+};
+
 function getSiteUrl() {
   const value =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -79,7 +94,31 @@ function buildDescription(product: ProductPayload | null) {
   return "Source products from verified vendors worldwide on MaheDeluxe.";
 }
 
-async function fetchProduct(id: string) {
+function isWrappedProductResponse(
+  payload: ProductResponse,
+): payload is { data?: ProductPayload; product?: ProductPayload } {
+  return "data" in payload || "product" in payload;
+}
+
+function extractProductPayload(payload: ProductResponse | null) {
+  if (!payload) return null;
+
+  if (isWrappedProductResponse(payload)) {
+    if (payload.data) {
+      return payload.data;
+    }
+
+    if (payload.product) {
+      return payload.product;
+    }
+
+    return null;
+  }
+
+  return payload;
+}
+
+async function fetchProduct(id: string): Promise<FetchProductResult> {
   const apiBaseUrl = getApiBaseUrl();
   const requestUrl = `${apiBaseUrl}/product/${id}`;
 
@@ -89,8 +128,7 @@ async function fetchProduct(id: string) {
     });
 
     const rawText = await response.text();
-    let data: ProductPayload | { data?: ProductPayload; product?: ProductPayload } | null =
-      null;
+    let data: ProductResponse | null = null;
 
     try {
       data = rawText ? JSON.parse(rawText) : null;
@@ -103,7 +141,7 @@ async function fetchProduct(id: string) {
       status: response.status,
       requestUrl,
       rawText,
-      product: data?.data || data?.product || data || null,
+      product: extractProductPayload(data),
     };
   } catch (error) {
     return {

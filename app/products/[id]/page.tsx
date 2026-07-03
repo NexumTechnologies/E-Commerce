@@ -19,6 +19,13 @@ type ProductPayload = {
   }> | null;
 };
 
+type ProductResponse =
+  | ProductPayload
+  | {
+      data?: ProductPayload;
+      product?: ProductPayload;
+    };
+
 function getSiteUrl() {
   const value =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -84,6 +91,30 @@ function buildDescription(product: ProductPayload | null) {
   return "Source products from verified vendors worldwide on MaheDeluxe.";
 }
 
+function isWrappedProductResponse(
+  payload: ProductResponse,
+): payload is { data?: ProductPayload; product?: ProductPayload } {
+  return "data" in payload || "product" in payload;
+}
+
+function extractProductPayload(payload: ProductResponse | null) {
+  if (!payload) return null;
+
+  if (isWrappedProductResponse(payload)) {
+    if (payload.data) {
+      return payload.data;
+    }
+
+    if (payload.product) {
+      return payload.product;
+    }
+
+    return null;
+  }
+
+  return payload;
+}
+
 async function fetchProduct(id: string) {
   try {
     const response = await fetch(`${getApiBaseUrl()}/product/${id}`, {
@@ -94,11 +125,9 @@ async function fetchProduct(id: string) {
       return null;
     }
 
-    const data = (await response.json()) as
-      | ProductPayload
-      | { data?: ProductPayload; product?: ProductPayload };
+    const data = (await response.json()) as ProductResponse;
 
-    return data?.data || data?.product || data || null;
+    return extractProductPayload(data);
   } catch {
     return null;
   }
