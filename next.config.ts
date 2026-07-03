@@ -27,6 +27,7 @@ const noStoreHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  htmlLimitedBots: /.*/,
   env: {
     NEXT_PUBLIC_APP_BUILD_ID: buildId,
   },

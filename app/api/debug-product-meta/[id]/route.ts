@@ -1,13 +1,8 @@
-import type { Metadata } from "next";
-import ProductDetailClient from "./ProductDetailClient";
+import { NextResponse } from "next/server";
 
 const DEFAULT_SITE_URL = "https://www.mahedeluxe.ae";
 const DEFAULT_API_BASE_URL = "http://localhost:5000/api/v1";
 const DEFAULT_SHARE_IMAGE = "/logo.png";
-
-type ProductRouteParams = {
-  params: Promise<{ id: string }>;
-};
 
 type ProductPayload = {
   id?: string | number;
@@ -85,66 +80,68 @@ function buildDescription(product: ProductPayload | null) {
 }
 
 async function fetchProduct(id: string) {
+  const apiBaseUrl = getApiBaseUrl();
+  const requestUrl = `${apiBaseUrl}/product/${id}`;
+
   try {
-    const response = await fetch(`${getApiBaseUrl()}/product/${id}`, {
+    const response = await fetch(requestUrl, {
       cache: "no-store",
     });
 
-    if (!response.ok) {
-      return null;
+    const rawText = await response.text();
+    let data: ProductPayload | { data?: ProductPayload; product?: ProductPayload } | null =
+      null;
+
+    try {
+      data = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      data = null;
     }
 
-    const data = (await response.json()) as
-      | ProductPayload
-      | { data?: ProductPayload; product?: ProductPayload };
-
-    return data?.data || data?.product || data || null;
-  } catch {
-    return null;
+    return {
+      ok: response.ok,
+      status: response.status,
+      requestUrl,
+      rawText,
+      product: data?.data || data?.product || data || null,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      requestUrl,
+      rawText: error instanceof Error ? error.message : "Unknown fetch error",
+      product: null,
+    };
   }
 }
 
-export async function generateMetadata(
-  { params }: ProductRouteParams,
-): Promise<Metadata> {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const { id } = await params;
   const siteUrl = getSiteUrl();
-  const product = await fetchProduct(id);
-  const productName = String(product?.name || "Product");
-  const description = buildDescription(product);
-  const pageUrl = `${siteUrl}/products/${id}`;
-  const shareImage = getShareImage(product, siteUrl);
+  const result = await fetchProduct(id);
+  const productName = String(result.product?.name || "Product");
 
-  return {
-    title: product ? `${productName} | MaheDeluxe` : "MaheDeluxe Product",
-    description,
-    alternates: {
-      canonical: pageUrl,
-    },
-    openGraph: {
-      title: product ? `${productName} | MaheDeluxe` : "MaheDeluxe Product",
-      description,
-      url: pageUrl,
-      siteName: "MaheDeluxe",
-      type: "website",
-      images: shareImage
-        ? [
-            {
-              url: shareImage,
-              alt: product ? productName : "MaheDeluxe",
-            },
-          ]
-        : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: product ? `${productName} | MaheDeluxe` : "MaheDeluxe Product",
-      description,
-      images: shareImage ? [shareImage] : undefined,
-    },
-  };
-}
-
-export default function ProductDetailPage() {
-  return <ProductDetailClient />;
+  return NextResponse.json({
+    id,
+    siteUrl,
+    apiBaseUrl: getApiBaseUrl(),
+    fetchOk: result.ok,
+    fetchStatus: result.status,
+    fetchUrl: result.requestUrl,
+    productFound: Boolean(result.product),
+    productName,
+    description: buildDescription(result.product),
+    shareImage: getShareImage(result.product, siteUrl),
+    productImages: normalizeImageList(result.product?.image_url),
+    variantImages: Array.isArray(result.product?.size_variants)
+      ? result.product.size_variants.flatMap((variant) =>
+          normalizeImageList(variant?.image_url),
+        )
+      : [],
+    rawResponsePreview: result.rawText.slice(0, 500),
+  });
 }
