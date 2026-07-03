@@ -25,6 +25,11 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.SITE_URL ||
+      "https://www.mahedeluxe.ae",
+  ),
   title:
     "MaheDeluxe - Multi-Vendor B2B Marketplace | Connect with Global Suppliers",
   description:
