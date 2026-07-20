@@ -40,6 +40,10 @@ type AdminProduct = {
   name: string;
   description?: string | null;
   price?: number | string;
+  base_price?: number | string;
+  customer_price?: number | string;
+  admin_margin_amount?: number | string;
+  admin_margin_percentage?: number | string;
   commission_percentage?: number | string;
   quantity?: number | string;
   min_order_quantity?: number | string;
@@ -802,6 +806,8 @@ export default function AdminProductsPage() {
                     <th className="py-2 pr-4">Status</th>
                     <th className="py-2 pr-4">Base Price</th>
                     <th className="py-2 pr-4">Commission (%)</th>
+                    <th className="py-2 pr-4">Commission Amount</th>
+                    <th className="py-2 pr-4">Total Price</th>
                     <th className="py-2 pr-4">Stock</th>
                     <th className="py-2 pr-0 text-right">Actions</th>
                   </tr>
@@ -827,6 +833,9 @@ export default function AdminProductsPage() {
                     const uploaderRole = product.User?.role
                       ? String(product.User.role)
                       : "";
+                    const productBasePrice = Number(product.base_price ?? product.price ?? 0);
+                    const productCommissionAmount = Number(product.admin_margin_amount ?? 0);
+                    const productTotalPrice = Number(product.customer_price ?? product.price ?? 0);
                     const productCommission = Number(product.commission_percentage ?? 0);
                     const currentCommission = Number.isFinite(productCommission)
                       ? productCommission
@@ -913,7 +922,9 @@ export default function AdminProductsPage() {
                         </td>
                         <td className="py-2 pr-4">
                           <span className="font-semibold text-slate-900">
-                            {product.price} AED
+                            {Number.isFinite(productBasePrice)
+                              ? `${productBasePrice.toFixed(2)} AED`
+                              : "0.00 AED"}
                           </span>
                         </td>
                         <td className="py-2 pr-4">
@@ -987,6 +998,20 @@ export default function AdminProductsPage() {
                               </button>
                             </div>
                           )}
+                        </td>
+                        <td className="py-2 pr-4">
+                          <span className="font-semibold text-slate-900">
+                            {Number.isFinite(productCommissionAmount)
+                              ? `${productCommissionAmount.toFixed(2)} AED`
+                              : "0.00 AED"}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4">
+                          <span className="font-semibold text-slate-900">
+                            {Number.isFinite(productTotalPrice)
+                              ? `${productTotalPrice.toFixed(2)} AED`
+                              : "0.00 AED"}
+                          </span>
                         </td>
                         <td className="py-2 pr-4 text-xs text-slate-700">
                           {product.quantity}
