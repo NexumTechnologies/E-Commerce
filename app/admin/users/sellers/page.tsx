@@ -30,6 +30,11 @@ type UsersResponse = {
     items?: SellerRow[];
     pagination?: {
       totalItems?: number;
+      totalPages?: number;
+      currentPage?: number;
+      hasNextPage?: boolean;
+      hasPrevPage?: boolean;
+      pageSize?: number;
     };
   };
 };
@@ -90,9 +95,30 @@ export default function AdminSellersPage() {
     }
     return true;
   });
-  const total = users.length;
-  const start = total === 0 ? 0 : (page - 1) * size + 1;
-  const end = Math.min(page * size, total || 0);
+  const totalItems = pagination?.totalItems ?? rawUsers.length;
+  const totalPages = pagination?.totalPages ?? Math.ceil(totalItems / size);
+  const currentPage = pagination?.currentPage ?? page;
+  const hasNextPage = pagination?.hasNextPage ?? currentPage < totalPages;
+  const hasPrevPage = pagination?.hasPrevPage ?? currentPage > 1;
+  const start = totalItems === 0 ? 0 : (currentPage - 1) * size + 1;
+  const end = totalItems === 0 ? 0 : start + users.length - 1;
+  const total = totalItems;
+
+  const pageButtons = (() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    if (currentPage <= 4) {
+      return [1, 2, 3, 4, 5, -1, totalPages];
+    }
+
+    if (currentPage >= totalPages - 3) {
+      return [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+
+    return [1, -1, currentPage - 1, currentPage, currentPage + 1, -1, totalPages];
+  })();
 
   return (
     <div className="space-y-6" dir={dir}>
@@ -270,23 +296,41 @@ export default function AdminSellersPage() {
               )}
             </div>
 
-            <div className="p-4 flex items-center justify-between bg-white border-t border-gray-100">
+            <div className="p-4 flex flex-col gap-3 bg-white border-t border-gray-100 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-gray-600">{td("common.total", { total })}</div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
-                  disabled={page <= 1}
+                  disabled={!hasPrevPage}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1 border rounded disabled:opacity-50"
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {td("common.prev")}
                 </button>
-                <span className="px-3 py-1 border rounded bg-gray-50">
-                  {td("common.page", { page })}
-                </span>
+                {pageButtons.map((pageButton, index) =>
+                  pageButton === -1 ? (
+                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-sm text-slate-500">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={pageButton}
+                      type="button"
+                      onClick={() => setPage(pageButton)}
+                      disabled={pageButton === currentPage}
+                      className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
+                        pageButton === currentPage
+                          ? "border-indigo-600 bg-indigo-600 text-white"
+                          : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                      } disabled:cursor-not-allowed disabled:opacity-70`}
+                    >
+                      {pageButton}
+                    </button>
+                  ),
+                )}
                 <button
-                  disabled={page >= Math.ceil((total || 0) / size)}
+                  disabled={!hasNextPage}
                   onClick={() => setPage((p) => p + 1)}
-                  className="px-3 py-1 border rounded disabled:opacity-50"
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {td("common.next")}
                 </button>

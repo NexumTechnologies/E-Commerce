@@ -1122,7 +1122,7 @@ export default function AdminProductsPage() {
                     Delete Product
                   </h2>
                   <p className="text-xs text-slate-500 mt-1">
-                    Are you sure to delete this product?
+                    Are you sure you want to delete this product?
                   </p>
                 </div>
                 <button
@@ -1131,12 +1131,12 @@ export default function AdminProductsPage() {
                   className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
                   aria-label="Close"
                 >
-                  ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¢
+                  ×
                 </button>
               </div>
 
               <div className="px-6 py-4 text-sm text-slate-600">
-                This action canÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢t be undone.
+                This action cannot be undone.
               </div>
 
               <div className="flex items-center justify-end gap-2 border-t px-6 py-4">
@@ -1783,11 +1783,12 @@ export default function AdminProductsPage() {
                   <button
                     type="submit"
                     disabled={
+                      !isFormReady ||
                       createMutation.isPending ||
                       updateMutation.isPending ||
                       uploading
                     }
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-60"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {createMutation.isPending || updateMutation.isPending
                       ? "Saving..."
