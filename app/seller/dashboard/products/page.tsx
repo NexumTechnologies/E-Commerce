@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { formatAED } from "@/lib/utils";
@@ -159,6 +159,8 @@ export default function SellerProductsPage() {
   const [sizeVariants, setSizeVariants] = useState<SizeVariantForm[]>([
     emptyVariant(),
   ]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 9;
 
   const startEdit = (product: any) => {
     const imgs: string[] = Array.isArray(product?.image_url)
@@ -197,10 +199,11 @@ export default function SellerProductsPage() {
   //========================= API CALLS ==========================//
   //==============================================================//
   const { data, isLoading, error } = useQuery({
-    queryKey: ["seller-products"],
+    queryKey: ["seller-products", currentPage, productsPerPage],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const res = await api.get("/product/user/me", {
+        params: { page: currentPage, size: productsPerPage },
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -208,8 +211,32 @@ export default function SellerProductsPage() {
   });
 
   const products = data?.data?.items || data?.products || data || [];
+  const pagination = data?.data?.pagination;
+  const totalItems = pagination?.totalItems ?? products.length;
+  const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(totalItems / productsPerPage) ?? 1, 1);
+  const pageFromApi = pagination?.currentPage ?? currentPage;
+  const hasNextPage = pagination?.hasNextPage ?? pageFromApi < totalPages;
+  const hasPrevPage = pagination?.hasPrevPage ?? pageFromApi > 1;
+  const start = totalItems === 0 ? 0 : (pageFromApi - 1) * productsPerPage + 1;
+  const end = totalItems === 0 ? 0 : start + products.length - 1;
+  const pageButtons = (() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+    if (pageFromApi <= 4) {
+      return [1, 2, 3, 4, 5, -1, totalPages];
+    }
+    if (pageFromApi >= totalPages - 3) {
+      return [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, -1, pageFromApi - 1, pageFromApi, pageFromApi + 1, -1, totalPages];
+  })();
 
-  console.log("here", products);
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // Load categories for the select
   const { data: categoriesData } = useQuery({
@@ -492,114 +519,160 @@ export default function SellerProductsPage() {
           No products found.
         </div>
       ) : (
-        <section className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product: any) => {
-            const images: string[] = Array.isArray(product.image_url)
-              ? product.image_url
-              : product.image_url
-                ? [product.image_url]
-                : [];
-            const primaryImage = images[0];
-            const extraCount = images.length > 1 ? images.length - 1 : 0;
+        <>
+          <section className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product: any) => {
+              const images: string[] = Array.isArray(product.image_url)
+                ? product.image_url
+                : product.image_url
+                  ? [product.image_url]
+                  : [];
+              const primaryImage = images[0];
+              const extraCount = images.length > 1 ? images.length - 1 : 0;
 
-            return (
-              <div
-                key={product.id}
-                className="border rounded-xl bg-white shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setSelectedImageIndex(0);
-                  setSelectedProduct(product);
-                }}
-              >
-                <div className="relative w-full h-40 bg-slate-100">
-                  {primaryImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={primaryImage}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
-                      No image
-                    </div>
-                  )}
-                  {extraCount > 0 && (
-                    <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[11px] px-2 py-0.5 rounded-full">
-                      +{extraCount} more
-                    </span>
-                  )}
-                </div>
-
-                <div className="p-4 flex flex-col gap-2 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-slate-900 text-sm line-clamp-2">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center gap-1">
-                      {product.Category?.name && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 whitespace-nowrap">
-                          {product.Category.name}
-                        </span>
-                      )}
-                      {product.is_active === false && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">
-                          Pending approval
-                        </span>
-                      )}
-                    </div>
+              return (
+                <div
+                  key={product.id}
+                  className="border rounded-xl bg-white shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setSelectedImageIndex(0);
+                    setSelectedProduct(product);
+                  }}
+                >
+                  <div className="relative w-full h-40 bg-slate-100">
+                    {primaryImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={primaryImage}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
+                        No image
+                      </div>
+                    )}
+                    {extraCount > 0 && (
+                      <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[11px] px-2 py-0.5 rounded-full">
+                        +{extraCount} more
+                      </span>
+                    )}
                   </div>
 
-                  {product.description && (
-                    <p className="text-xs text-slate-500 line-clamp-2">
-                      {product.description}
-                    </p>
-                  )}
-
-                  <div className="mt-auto flex items-center justify-between pt-2 border-t text-xs">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-[11px] text-slate-500">Price</span>
-                      <span className="text-green-700 font-semibold text-sm">
-                        {formatAED(product.price)}
-                      </span>
+                  <div className="p-4 flex flex-col gap-2 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-slate-900 text-sm line-clamp-2">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center gap-1">
+                        {product.Category?.name && (
+                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 whitespace-nowrap">
+                            {product.Category.name}
+                          </span>
+                        )}
+                        {product.is_active === false && (
+                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">
+                            Pending approval
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-baseline gap-1 text-slate-500">
-                        <span className="text-[11px]">Stock</span>
-                        <span className="text-xs font-medium">
-                          {product.quantity}
+
+                    {product.description && (
+                      <p className="text-xs text-slate-500 line-clamp-2">
+                        {product.description}
+                      </p>
+                    )}
+
+                    <div className="mt-auto flex items-center justify-between pt-2 border-t text-xs">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-[11px] text-slate-500">Price</span>
+                        <span className="text-green-700 font-semibold text-sm">
+                          {formatAED(product.price)}
                         </span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEdit(product);
-                        }}
-                        className="rounded-md border px-2 py-1 text-[11px] font-medium text-blue-600 border-blue-500 hover:bg-blue-50"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteTarget(product);
-                        }}
-                        className="rounded-md border px-2 py-1 text-[11px] font-medium border-red-500 text-red-600 hover:bg-red-50"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-baseline gap-1 text-slate-500">
+                          <span className="text-[11px]">Stock</span>
+                          <span className="text-xs font-medium">
+                            {product.quantity}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEdit(product);
+                          }}
+                          className="rounded-md border px-2 py-1 text-[11px] font-medium text-blue-600 border-blue-500 hover:bg-blue-50"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTarget(product);
+                          }}
+                          className="rounded-md border px-2 py-1 text-[11px] font-medium border-red-500 text-red-600 hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </section>
-      )}
+              );
+            })}
+          </section>
 
+          {totalPages > 1 && (
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm text-slate-600">Showing {start}-{end} of {totalItems}</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!hasPrevPage}
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Prev
+                </button>
+                {pageButtons.map((pageButton, index) =>
+                  pageButton === -1 ? (
+                    <span key={`seller-ellipsis-${index}`} className="px-3 py-1 text-sm text-slate-500">
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={pageButton}
+                      type="button"
+                      onClick={() => setCurrentPage(pageButton)}
+                      disabled={pageButton === pageFromApi}
+                      className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
+                        pageButton === pageFromApi
+                          ? "border-indigo-600 bg-indigo-600 text-white"
+                          : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                      } disabled:cursor-not-allowed disabled:opacity-70`}
+                    >
+                      {pageButton}
+                    </button>
+                  ),
+                )}
+                <button
+                  type="button"
+                  disabled={!hasNextPage}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
       {isModalOpen && (
         <ScreenModal open={isModalOpen}>
           <div className="app-modal-overlay">
@@ -1250,6 +1323,8 @@ export default function SellerProductsPage() {
     </div>
   );
 }
+
+
 
 
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import ScreenModal from "@/components/ui/ScreenModal";
@@ -96,7 +96,7 @@ function buildSizeVariantPayload(variants: SizeVariantForm[]) {
 
 type ProductsResponse =
   | {
-      data?: { items?: Product[] };
+      data?: { items?: Product[]; pagination?: { totalItems?: number; totalPages?: number; currentPage?: number; hasNextPage?: boolean; hasPrevPage?: boolean; pageSize?: number; }; };
       products?: Product[];
     }
   | Product[];
@@ -142,14 +142,17 @@ export default function BuyerProductsPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
   const [sizeVariants, setSizeVariants] = useState<SizeVariantForm[]>([emptyVariant()]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 9;
 
   //========================= API CALLS ==========================//
   //==============================================================//
   const { data, isLoading, error } = useQuery({
-    queryKey: ["buyer-products"],
+    queryKey: ["buyer-products", currentPage, productsPerPage],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const res = await api.get("/product/user/me", {
+        params: { page: currentPage, size: productsPerPage },
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -157,6 +160,27 @@ export default function BuyerProductsPage() {
   });
 
   const products = getProducts(data);
+  const payload = Array.isArray(data) ? undefined : data?.data;
+  const pagination = payload?.pagination;
+  const totalItems = pagination?.totalItems ?? products.length;
+  const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(totalItems / productsPerPage) ?? 1, 1);
+  const pageFromApi = pagination?.currentPage ?? currentPage;
+  const hasNextPage = pagination?.hasNextPage ?? pageFromApi < totalPages;
+  const hasPrevPage = pagination?.hasPrevPage ?? pageFromApi > 1;
+  const start = totalItems === 0 ? 0 : (pageFromApi - 1) * productsPerPage + 1;
+  const end = totalItems === 0 ? 0 : start + products.length - 1;
+  const pageButtons = (() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+    if (pageFromApi <= 4) {
+      return [1, 2, 3, 4, 5, -1, totalPages];
+    }
+    if (pageFromApi >= totalPages - 3) {
+      return [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, -1, pageFromApi - 1, pageFromApi, pageFromApi + 1, -1, totalPages];
+  })();
 
   const { data: categoriesData } = useQuery({
     queryKey: ["buyer-categories-options"],
@@ -409,6 +433,12 @@ export default function BuyerProductsPage() {
     setSizeVariants(normalizeVariantsForForm(product));
     setIsModalOpen(true);
   };
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const imagesForSelected = (() => {
     if (!selectedProduct) return [];
@@ -1084,6 +1114,7 @@ export default function BuyerProductsPage() {
     </div>
   );
 }
+
 
 
 
