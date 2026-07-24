@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import CompactPagination from "@/components/browse/CompactPagination";
 import type { AdminOrder } from "../types";
 import { formatAED } from "@/lib/utils";
 
@@ -74,8 +75,10 @@ export default function AdminListedOrdersPage() {
   const totals = data?.data?.totals;
 
   const total = pagination?.totalItems ?? 0;
-  const start = total === 0 ? 0 : (page - 1) * size + 1;
-  const end = Math.min(page * size, total || 0);
+  const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(total / size) ?? 1, 1);
+  const currentPage = pagination?.currentPage ?? page;
+  const start = total === 0 ? 0 : (currentPage - 1) * size + 1;
+  const end = Math.min(currentPage * size, total || 0);
 
   useEffect(() => {
     setPage(1);
@@ -285,11 +288,11 @@ export default function AdminListedOrdersPage() {
               <div className="text-xs text-gray-500">
                 Page{" "}
                 <span className="font-medium text-gray-700">
-                  {pagination?.currentPage ?? page}
+                  {currentPage}
                 </span>{" "}
                 of{" "}
                 <span className="font-medium text-gray-700">
-                  {pagination?.totalPages ?? 1}
+                  {totalPages}
                 </span>
               </div>
               <div className="flex gap-2">
@@ -315,3 +318,7 @@ export default function AdminListedOrdersPage() {
     </div>
   );
 }
+
+
+
+

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import CompactPagination from "@/components/browse/CompactPagination";
 
 type CustomerProfile = {
   profile_image?: string | null;
@@ -105,8 +106,10 @@ export default function AdminCustomersPage() {
   users = users.filter((u) => u.role !== "admin");
   const pagination = payload?.data?.pagination;
   const total = pagination?.totalItems ?? 0;
-  const start = total === 0 ? 0 : (page - 1) * size + 1;
-  const end = Math.min(page * size, total || 0);
+  const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(total / size) ?? 1, 1);
+  const currentPage = pagination?.currentPage ?? page;
+  const start = total === 0 ? 0 : (currentPage - 1) * size + 1;
+  const end = Math.min(currentPage * size, total || 0);
 
   if (unverifiedOnly) {
     users = users.filter((u) => !u.is_varified);
@@ -323,3 +326,5 @@ export default function AdminCustomersPage() {
     </div>
   );
 }
+
+

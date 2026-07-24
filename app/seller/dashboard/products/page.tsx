@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import CompactPagination from "@/components/browse/CompactPagination";
 import { formatAED } from "@/lib/utils";
 import ScreenModal from "@/components/ui/ScreenModal";
 import SizeVariantsEditor from "@/components/product-forms/SizeVariantsEditor";
@@ -214,24 +215,8 @@ export default function SellerProductsPage() {
   const pagination = data?.data?.pagination;
   const totalItems = pagination?.totalItems ?? products.length;
   const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(totalItems / productsPerPage) ?? 1, 1);
-  const pageFromApi = pagination?.currentPage ?? currentPage;
-  const hasNextPage = pagination?.hasNextPage ?? pageFromApi < totalPages;
-  const hasPrevPage = pagination?.hasPrevPage ?? pageFromApi > 1;
-  const start = totalItems === 0 ? 0 : (pageFromApi - 1) * productsPerPage + 1;
+  const pageFromApi = pagination?.currentPage ?? currentPage;  const start = totalItems === 0 ? 0 : (pageFromApi - 1) * productsPerPage + 1;
   const end = totalItems === 0 ? 0 : start + products.length - 1;
-  const pageButtons = (() => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-    if (pageFromApi <= 4) {
-      return [1, 2, 3, 4, 5, -1, totalPages];
-    }
-    if (pageFromApi >= totalPages - 3) {
-      return [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    }
-    return [1, -1, pageFromApi - 1, pageFromApi, pageFromApi + 1, -1, totalPages];
-  })();
-
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
@@ -1323,6 +1308,9 @@ export default function SellerProductsPage() {
     </div>
   );
 }
+
+
+
 
 
 

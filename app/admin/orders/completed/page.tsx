@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import CompactPagination from "@/components/browse/CompactPagination";
 
 import type { AdminOrder } from "../types";
 
@@ -115,8 +116,10 @@ export default function AdminCompletedOrdersPage() {
   const orders = data?.data?.items ?? [];
   const pagination = data?.data?.pagination;
   const total = pagination?.totalItems ?? 0;
-  const start = total === 0 ? 0 : (page - 1) * size + 1;
-  const end = Math.min(page * size, total || 0);
+  const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(total / size) ?? 1, 1);
+  const currentPage = pagination?.currentPage ?? page;
+  const start = total === 0 ? 0 : (currentPage - 1) * size + 1;
+  const end = Math.min(currentPage * size, total || 0);
 
   return (
     <div className="space-y-6 relative">
@@ -247,3 +250,5 @@ export default function AdminCompletedOrdersPage() {
     </div>
   );
 }
+
+

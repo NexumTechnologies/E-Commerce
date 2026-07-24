@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import CompactPagination from "@/components/browse/CompactPagination";
 import { useI18n } from "@/components/LanguageProvider";
 import { translateDashboard } from "@/lib/dashboard-i18n";
 
@@ -95,9 +96,11 @@ export default function SellerApprovalsPage() {
 
   const users = data?.data?.items || [];
   const pagination = data?.data?.pagination || {};
-  const total = pagination.totalItems || 0;
-  const start = total === 0 ? 0 : (page - 1) * size + 1;
-  const end = Math.min(page * size, total || 0);
+  const total = pagination?.totalItems ?? 0;
+  const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(total / size) ?? 1, 1);
+  const currentPage = pagination?.currentPage ?? page;
+  const start = total === 0 ? 0 : (currentPage - 1) * size + 1;
+  const end = Math.min(currentPage * size, total || 0);
 
   return (
     <div className="space-y-6" dir={dir}>
@@ -426,3 +429,5 @@ export default function SellerApprovalsPage() {
     </div>
   );
 }
+
+

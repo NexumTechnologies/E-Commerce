@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import CompactPagination from "@/components/browse/CompactPagination";
 import { useI18n } from "@/components/LanguageProvider";
 import { translateDashboard } from "@/lib/dashboard-i18n";
 
@@ -97,29 +98,9 @@ export default function AdminSellersPage() {
   });
   const totalItems = pagination?.totalItems ?? rawUsers.length;
   const totalPages = pagination?.totalPages ?? Math.ceil(totalItems / size);
-  const currentPage = pagination?.currentPage ?? page;
-  const hasNextPage = pagination?.hasNextPage ?? currentPage < totalPages;
-  const hasPrevPage = pagination?.hasPrevPage ?? currentPage > 1;
-  const start = totalItems === 0 ? 0 : (currentPage - 1) * size + 1;
+  const currentPage = pagination?.currentPage ?? page;  const start = totalItems === 0 ? 0 : (currentPage - 1) * size + 1;
   const end = totalItems === 0 ? 0 : start + users.length - 1;
   const total = totalItems;
-
-  const pageButtons = (() => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-
-    if (currentPage <= 4) {
-      return [1, 2, 3, 4, 5, -1, totalPages];
-    }
-
-    if (currentPage >= totalPages - 3) {
-      return [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    }
-
-    return [1, -1, currentPage - 1, currentPage, currentPage + 1, -1, totalPages];
-  })();
-
   return (
     <div className="space-y-6" dir={dir}>
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -162,49 +143,6 @@ export default function AdminSellersPage() {
           </div>
         </div>
       </header>
-
-      <div className="flex flex-wrap items-center gap-2">
-        {[
-          { value: "all", label: td("common.all") },
-          { value: "approved", label: td("common.verified") },
-          { value: "pending", label: td("common.notVerified") },
-          { value: "rejected", label: td("common.rejected") },
-        ].map((item) => (
-          <button
-            key={item.value}
-            type="button"
-            onClick={() => {
-              setStatusFilter(item.value as typeof statusFilter);
-              setPage(1);
-            }}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-              statusFilter === item.value
-                ? "border-slate-900 bg-slate-900 text-white"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-        {isLoading ? (
-          <div className="p-6 text-center">{td("common.loading")}</div>
-        ) : error ? (
-          <div className="p-6 text-center text-red-600">
-            {td("adminSellers.failed")}
-          </div>
-        ) : (
-          <>
-            <div className="p-4 border-b flex items-center justify-between bg-gray-50/60">
-              <div className="text-sm text-gray-600">
-                {td("common.showingRange", { start, end, total })}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">{td("common.perPage", { size })}</span>
-              </div>
-            </div>
 
             <div className="p-4 bg-gray-50/60">
               {users.length === 0 ? (
@@ -298,47 +236,14 @@ export default function AdminSellersPage() {
 
             <div className="p-4 flex flex-col gap-3 bg-white border-t border-gray-100 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-gray-600">{td("common.total", { total })}</div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  disabled={!hasPrevPage}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {td("common.prev")}
-                </button>
-                {pageButtons.map((pageButton, index) =>
-                  pageButton === -1 ? (
-                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-sm text-slate-500">
-                      …
-                    </span>
-                  ) : (
-                    <button
-                      key={pageButton}
-                      type="button"
-                      onClick={() => setPage(pageButton)}
-                      disabled={pageButton === currentPage}
-                      className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
-                        pageButton === currentPage
-                          ? "border-indigo-600 bg-indigo-600 text-white"
-                          : "border-slate-300 text-slate-700 hover:bg-slate-50"
-                      } disabled:cursor-not-allowed disabled:opacity-70`}
-                    >
-                      {pageButton}
-                    </button>
-                  ),
-                )}
-                <button
-                  disabled={!hasNextPage}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {td("common.next")}
-                </button>
-              </div>
-            </div>
           </>
         )}
       </div>
     </div>
   );
 }
+
+
+
+
+

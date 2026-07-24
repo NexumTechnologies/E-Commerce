@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import CompactPagination from "@/components/browse/CompactPagination";
 import ScreenModal from "@/components/ui/ScreenModal";
 import SizeVariantsEditor from "@/components/product-forms/SizeVariantsEditor";
 import { getVariantTypeMeta } from "@/lib/productVariantType";
@@ -1807,6 +1808,7 @@ export default function AdminProductsPage() {
     </div>
   );
 }
+
 
 
 

@@ -5,8 +5,6 @@ import {
   LayoutGrid,
   List,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -14,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { getSafeImageFromValue } from "@/lib/utils";
 import { useI18n } from "@/components/LanguageProvider";
+import CompactPagination from "@/components/browse/CompactPagination";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -320,43 +319,16 @@ export default function BrowseContent() {
 
       {/* Pagination */}
       {sortedProducts.length > 0 && totalPages > 1 && (
-        <div className="mt-12 flex justify-center">
-          <nav className="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={activePage === 1}
-              className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-100 text-gray-600 hover:border-blue hover:text-blue transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i + 1}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all font-bold ${
-                  activePage === i + 1
-                    ? "bg-blue text-white shadow-lg shadow-blue/20"
-                    : "border border-gray-100 text-gray-600 hover:border-blue hover:text-blue"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-              }
-              disabled={activePage === totalPages}
-              className="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-100 text-gray-600 hover:border-blue hover:text-blue transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </nav>
-        </div>
+        <CompactPagination
+          currentPage={activePage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       )}
     </div>
   );
 }
+
+
+
 

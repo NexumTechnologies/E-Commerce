@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import CompactPagination from "@/components/browse/CompactPagination";
 
 type CategoryOption = {
   id: number;
@@ -102,26 +103,8 @@ export default function AdminSubSubCategoriesPage() {
   const totalItems = pagination?.totalItems ?? subSubCategories.length;
   const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(totalItems / size) ?? 1, 1);
   const currentPage = pagination?.currentPage ?? page;
-  const hasNextPage = pagination?.hasNextPage ?? currentPage < totalPages;
-  const hasPrevPage = pagination?.hasPrevPage ?? currentPage > 1;
   const start = totalItems === 0 ? 0 : (currentPage - 1) * size + 1;
   const end = totalItems === 0 ? 0 : start + subSubCategories.length - 1;
-
-  const pageButtons = (() => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-
-    if (currentPage <= 4) {
-      return [1, 2, 3, 4, 5, -1, totalPages];
-    }
-
-    if (currentPage >= totalPages - 3) {
-      return [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    }
-
-    return [1, -1, currentPage - 1, currentPage, currentPage + 1, -1, totalPages];
-  })();
 
   const filteredSubCategories = subCategories.filter((subCategory) => {
     if (!form.category_id.trim()) return true;
@@ -270,11 +253,7 @@ export default function AdminSubSubCategoriesPage() {
                               {item.SubCategory?.name || "No subcategory"}
                             </span>
                             <span
-                              className={`rounded-full px-2 py-0.5 text-[11px] ${
-                                item.is_active === false
-                                  ? "bg-amber-100 text-amber-700"
-                                  : "bg-emerald-100 text-emerald-700"
-                              }`}
+                              className={ounded-full px-2 py-0.5 text-[11px] }
                             >
                               {item.is_active === false ? "Inactive" : "Active"}
                             </span>
@@ -285,81 +264,7 @@ export default function AdminSubSubCategoriesPage() {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditing(item);
-                            setModalOpen(true);
-                          }}
-                          className="rounded-lg border border-indigo-500 px-3 py-1.5 text-sm text-indigo-600"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => toggleStatusMutation.mutate(item.id)}
-                          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700"
-                        >
-                          {item.is_active === false ? "Activate" : "Deactivate"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm(`Delete "${item.name}"?`)) {
-                              deleteMutation.mutate(item.id);
-                            }
-                          }}
-                          className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-600"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-3 border-t border-gray-100 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm text-gray-600">Total: {totalItems}</div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  disabled={!hasPrevPage}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Prev
-                </button>
-                {pageButtons.map((pageButton, index) =>
-                  pageButton === -1 ? (
-                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-sm text-slate-500">...
-                    </span>
-                  ) : (
-                    <button
-                      key={pageButton}
-                      type="button"
-                      onClick={() => setPage(pageButton)}
-                      disabled={pageButton === currentPage}
-                      className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
-                        pageButton === currentPage
-                          ? "border-indigo-600 bg-indigo-600 text-white"
-                          : "border-slate-300 text-slate-700 hover:bg-slate-50"
-                      } disabled:cursor-not-allowed disabled:opacity-70`}
-                    >
-                      {pageButton}
-                    </button>
-                  ),
-                )}
-                <button
-                  disabled={!hasNextPage}
-                  onClick={() => setPage((prev) => prev + 1)}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+                      <div className="flex items-center gap-2">
           </>
         )}
       </div>
@@ -549,3 +454,9 @@ export default function AdminSubSubCategoriesPage() {
     </div>
   );
 }
+
+
+
+
+
+

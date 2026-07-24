@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import CompactPagination from "@/components/browse/CompactPagination";
 
 type CategoryRow = {
   id?: number | string;
@@ -60,26 +61,8 @@ export default function AdminCategoriesPage() {
     1,
   );
   const currentPage = pagination?.currentPage ?? page;
-  const hasNextPage = pagination?.hasNextPage ?? currentPage < totalPages;
-  const hasPrevPage = pagination?.hasPrevPage ?? currentPage > 1;
   const start = totalItems === 0 ? 0 : (currentPage - 1) * size + 1;
   const end = totalItems === 0 ? 0 : start + categories.length - 1;
-
-  const pageButtons = (() => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-
-    if (currentPage <= 4) {
-      return [1, 2, 3, 4, 5, -1, totalPages];
-    }
-
-    if (currentPage >= totalPages - 3) {
-      return [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    }
-
-    return [1, -1, currentPage - 1, currentPage, currentPage + 1, -1, totalPages];
-  })();
 
   const createMutation = useMutation({
     mutationFn: async (payload: any) => {
@@ -215,43 +198,11 @@ export default function AdminCategoriesPage() {
 
             <div className="flex flex-col gap-3 border-t border-gray-100 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-gray-600">Total: {totalItems}</div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  disabled={!hasPrevPage}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Prev
-                </button>
-                {pageButtons.map((pageButton, index) =>
-                  pageButton === -1 ? (
-                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-sm text-slate-500">
-                      ...
-                    </span>
-                  ) : (
-                    <button
-                      key={pageButton}
-                      type="button"
-                      onClick={() => setPage(pageButton)}
-                      disabled={pageButton === currentPage}
-                      className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
-                        pageButton === currentPage
-                          ? "border-indigo-600 bg-indigo-600 text-white"
-                          : "border-slate-300 text-slate-700 hover:bg-slate-50"
-                      } disabled:cursor-not-allowed disabled:opacity-70`}
-                    >
-                      {pageButton}
-                    </button>
-                  ),
-                )}
-                <button
-                  disabled={!hasNextPage}
-                  onClick={() => setPage((prev) => prev + 1)}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
+              <CompactPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
             </div>
           </>
         )}
@@ -375,3 +326,7 @@ export default function AdminCategoriesPage() {
     </div>
   );
 }
+
+
+
+
