@@ -4,27 +4,82 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 
+type CategoryRow = {
+  id?: number | string;
+  _id?: number | string;
+  name?: string;
+  image_url?: string | string[] | null;
+};
+
+type CategoriesResponse = {
+  data?: {
+    items?: CategoryRow[];
+    pagination?: {
+      totalItems?: number;
+      totalPages?: number;
+      currentPage?: number;
+      hasNextPage?: boolean;
+      hasPrevPage?: boolean;
+      pageSize?: number;
+    };
+  };
+  categories?: CategoryRow[];
+};
+
 //========================= API CALLS ==========================//
 //==============================================================//
-async function fetchCategories() {
-  const res = await api.get(`/category`);
-  if (res.data && res.data.data && Array.isArray(res.data.data.items)) return res.data.data.items;
-  if (res.data && Array.isArray(res.data.categories)) return res.data.categories;
-  if (Array.isArray(res.data)) return res.data;
-  return [];
+async function fetchCategories(page: number, size: number) {
+  const res = await api.get(`/category`, {
+    params: { page, size },
+  });
+  return res.data;
 }
 
 export default function AdminCategoriesPage() {
   const qc = useQueryClient();
+  const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState({ name: "", image_url: "" });
   const [uploadingImage, setUploadingImage] = useState(false);
+  const size = 10;
 
-  const { data: categories = [], isLoading } = useQuery({
-    queryKey: ["admin-categories"],
-    queryFn: () => fetchCategories(),
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-categories", page, size],
+    queryFn: () => fetchCategories(page, size),
   });
+
+  const payload = data as CategoriesResponse | CategoryRow[] | undefined;
+  const categories = Array.isArray(payload)
+    ? payload
+    : payload?.data?.items ?? payload?.categories ?? [];
+  const pagination = Array.isArray(payload) ? undefined : payload?.data?.pagination;
+  const totalItems = pagination?.totalItems ?? categories.length;
+  const totalPages = Math.max(
+    pagination?.totalPages ?? Math.ceil(totalItems / size) ?? 1,
+    1,
+  );
+  const currentPage = pagination?.currentPage ?? page;
+  const hasNextPage = pagination?.hasNextPage ?? currentPage < totalPages;
+  const hasPrevPage = pagination?.hasPrevPage ?? currentPage > 1;
+  const start = totalItems === 0 ? 0 : (currentPage - 1) * size + 1;
+  const end = totalItems === 0 ? 0 : start + categories.length - 1;
+
+  const pageButtons = (() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    if (currentPage <= 4) {
+      return [1, 2, 3, 4, 5, -1, totalPages];
+    }
+
+    if (currentPage >= totalPages - 3) {
+      return [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+
+    return [1, -1, currentPage - 1, currentPage, currentPage + 1, -1, totalPages];
+  })();
 
   const createMutation = useMutation({
     mutationFn: async (payload: any) => {
@@ -107,42 +162,98 @@ export default function AdminCategoriesPage() {
         {isLoading ? (
           <div className="p-6 text-center">Loading...</div>
         ) : (
-          <div className="p-4">
-            <ul className="divide-y">
-              {categories.map((c: any) => (
-                <li key={c.id ?? c._id} className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-11 w-11 overflow-hidden rounded-lg border bg-slate-50">
-                      {getCategoryImageUrl(c.image_url) ? (
-                        <img
-                          src={getCategoryImageUrl(c.image_url)}
-                          alt={c.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[10px] text-slate-400">
-                          No image
+          <>
+            <div className="flex items-center justify-between border-b bg-gray-50/60 p-4">
+              <div className="text-sm text-gray-600">
+                Showing {start}-{end} of {totalItems}
+              </div>
+              <div className="text-sm text-gray-500">Per page: {size}</div>
+            </div>
+
+            <div className="p-4">
+              {categories.length === 0 ? (
+                <div className="py-8 text-center text-sm text-gray-500">
+                  No categories found.
+                </div>
+              ) : (
+                <ul className="divide-y">
+                  {categories.map((c: any) => (
+                    <li key={c.id ?? c._id} className="flex items-center justify-between py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-11 w-11 overflow-hidden rounded-lg border bg-slate-50">
+                          {getCategoryImageUrl(c.image_url) ? (
+                            <img
+                              src={getCategoryImageUrl(c.image_url)}
+                              alt={c.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[10px] text-slate-400">
+                              No image
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="font-medium">{c.name}</div>
-                    <div className="text-sm text-gray-500">ID: {c.id ?? c._id}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
+                        <div className="font-medium">{c.name}</div>
+                        <div className="text-sm text-gray-500">ID: {c.id ?? c._id}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditing(c);
+                            setModalOpen(true);
+                          }}
+                          className="text-sm bg-indigo-600 text-white px-3 py-1 rounded-lg"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-gray-100 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm text-gray-600">Total: {totalItems}</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  disabled={!hasPrevPage}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Prev
+                </button>
+                {pageButtons.map((pageButton, index) =>
+                  pageButton === -1 ? (
+                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-sm text-slate-500">
+                      ...
+                    </span>
+                  ) : (
                     <button
-                      onClick={() => {
-                        setEditing(c);
-                        setModalOpen(true);
-                      }}
-                      className="text-sm bg-indigo-600 text-white px-3 py-1 rounded-lg"
+                      key={pageButton}
+                      type="button"
+                      onClick={() => setPage(pageButton)}
+                      disabled={pageButton === currentPage}
+                      className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
+                        pageButton === currentPage
+                          ? "border-indigo-600 bg-indigo-600 text-white"
+                          : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                      } disabled:cursor-not-allowed disabled:opacity-70`}
                     >
-                      Edit
+                      {pageButton}
                     </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+                  ),
+                )}
+                <button
+                  disabled={!hasNextPage}
+                  onClick={() => setPage((prev) => prev + 1)}
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
@@ -188,7 +299,6 @@ export default function AdminCategoriesPage() {
                         const file = e.target.files?.[0];
                         if (!file) return;
 
-                        // Show loader immediately ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â yield so React paints before upload
                         setUploadingImage(true);
                         await new Promise((r) => setTimeout(r, 0));
 

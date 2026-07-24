@@ -29,10 +29,24 @@ type SubSubCategoryItem = {
   SubCategory?: SubCategoryOption;
 };
 
+type PaginatedResponse<T> = {
+  data?: {
+    items?: T[];
+    pagination?: {
+      totalItems?: number;
+      totalPages?: number;
+      currentPage?: number;
+      hasNextPage?: boolean;
+      hasPrevPage?: boolean;
+      pageSize?: number;
+    };
+  };
+};
+
 //========================= API CALLS ==========================//
 //==============================================================//
 async function fetchCategories() {
-  const res = await api.get("/category");
+  const res = await api.get("/category", { params: { page: 1, size: 1000 } });
   if (Array.isArray(res.data?.data?.items)) return res.data.data.items;
   if (Array.isArray(res.data?.categories)) return res.data.categories;
   if (Array.isArray(res.data)) return res.data;
@@ -40,23 +54,21 @@ async function fetchCategories() {
 }
 
 async function fetchSubCategories() {
-  const res = await api.get("/subcategory");
+  const res = await api.get("/subcategory", { params: { page: 1, size: 1000 } });
   if (Array.isArray(res.data?.data?.items)) return res.data.data.items;
   if (Array.isArray(res.data?.subcategories)) return res.data.subcategories;
   if (Array.isArray(res.data)) return res.data;
   return [];
 }
 
-async function fetchSubSubCategories() {
-  const res = await api.get("/sub-subcategory");
-  if (Array.isArray(res.data?.data?.items)) return res.data.data.items;
-  if (Array.isArray(res.data?.subSubCategories)) return res.data.subSubCategories;
-  if (Array.isArray(res.data)) return res.data;
-  return [];
+async function fetchSubSubCategories(page: number, size: number) {
+  const res = await api.get("/sub-subcategory", { params: { page, size } });
+  return res.data;
 }
 
 export default function AdminSubSubCategoriesPage() {
   const qc = useQueryClient();
+  const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<SubSubCategoryItem | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -67,9 +79,10 @@ export default function AdminSubSubCategoriesPage() {
     sub_category_id: "",
     image_url: "",
   });
+  const size = 10;
 
   const { data: categories = [] } = useQuery<CategoryOption[]>({
-    queryKey: ["admin-categories"],
+    queryKey: ["admin-categories-options-all"],
     queryFn: fetchCategories,
   });
 
@@ -78,10 +91,37 @@ export default function AdminSubSubCategoriesPage() {
     queryFn: fetchSubCategories,
   });
 
-  const { data: subSubCategories = [], isLoading } = useQuery<SubSubCategoryItem[]>({
-    queryKey: ["admin-subsubcategories"],
-    queryFn: fetchSubSubCategories,
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-subsubcategories", page, size],
+    queryFn: () => fetchSubSubCategories(page, size),
   });
+
+  const payload = data as PaginatedResponse<SubSubCategoryItem> | undefined;
+  const subSubCategories = payload?.data?.items ?? [];
+  const pagination = payload?.data?.pagination;
+  const totalItems = pagination?.totalItems ?? subSubCategories.length;
+  const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(totalItems / size) ?? 1, 1);
+  const currentPage = pagination?.currentPage ?? page;
+  const hasNextPage = pagination?.hasNextPage ?? currentPage < totalPages;
+  const hasPrevPage = pagination?.hasPrevPage ?? currentPage > 1;
+  const start = totalItems === 0 ? 0 : (currentPage - 1) * size + 1;
+  const end = totalItems === 0 ? 0 : start + subSubCategories.length - 1;
+
+  const pageButtons = (() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    if (currentPage <= 4) {
+      return [1, 2, 3, 4, 5, -1, totalPages];
+    }
+
+    if (currentPage >= totalPages - 3) {
+      return [1, -1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+
+    return [1, -1, currentPage - 1, currentPage, currentPage + 1, -1, totalPages];
+  })();
 
   const filteredSubCategories = subCategories.filter((subCategory) => {
     if (!form.category_id.trim()) return true;
@@ -190,86 +230,137 @@ export default function AdminSubSubCategoriesPage() {
         {isLoading ? (
           <div className="p-6 text-center">Loading...</div>
         ) : (
-          <div className="p-4">
-            <ul className="divide-y">
-              {subSubCategories.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 overflow-hidden rounded-lg border bg-slate-50">
-                      {item.image_url ? (
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[10px] text-slate-400">
-                          No image
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium">{item.name}</span>
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
-                          {item.SubCategory?.Category?.name || "No category"}
-                        </span>
-                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] text-blue-700">
-                          {item.SubCategory?.name || "No subcategory"}
-                        </span>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[11px] ${
-                            item.is_active === false
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-emerald-100 text-emerald-700"
-                          }`}
-                        >
-                          {item.is_active === false ? "Inactive" : "Active"}
-                        </span>
-                      </div>
-                      <div className="text-sm text-slate-500">
-                        {item.description || "No description"}
-                      </div>
-                    </div>
-                  </div>
+          <>
+            <div className="flex items-center justify-between border-b bg-gray-50/60 p-4">
+              <div className="text-sm text-gray-600">Showing {start}-{end} of {totalItems}</div>
+              <div className="text-sm text-gray-500">Per page: {size}</div>
+            </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditing(item);
-                        setModalOpen(true);
-                      }}
-                      className="rounded-lg border border-indigo-500 px-3 py-1.5 text-sm text-indigo-600"
+            <div className="p-4">
+              {subSubCategories.length === 0 ? (
+                <div className="py-8 text-center text-sm text-gray-500">No sub-sub-categories found.</div>
+              ) : (
+                <ul className="divide-y">
+                  {subSubCategories.map((item) => (
+                    <li
+                      key={item.id}
+                      className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between"
                     >
-                      Edit
-                    </button>
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 overflow-hidden rounded-lg border bg-slate-50">
+                          {item.image_url ? (
+                            <img
+                              src={item.image_url}
+                              alt={item.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[10px] text-slate-400">
+                              No image
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">{item.name}</span>
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
+                              {item.SubCategory?.Category?.name || "No category"}
+                            </span>
+                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] text-blue-700">
+                              {item.SubCategory?.name || "No subcategory"}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[11px] ${
+                                item.is_active === false
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-emerald-100 text-emerald-700"
+                              }`}
+                            >
+                              {item.is_active === false ? "Inactive" : "Active"}
+                            </span>
+                          </div>
+                          <div className="text-sm text-slate-500">
+                            {item.description || "No description"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditing(item);
+                            setModalOpen(true);
+                          }}
+                          className="rounded-lg border border-indigo-500 px-3 py-1.5 text-sm text-indigo-600"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleStatusMutation.mutate(item.id)}
+                          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700"
+                        >
+                          {item.is_active === false ? "Activate" : "Deactivate"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`Delete "${item.name}"?`)) {
+                              deleteMutation.mutate(item.id);
+                            }
+                          }}
+                          className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-600"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-gray-100 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm text-gray-600">Total: {totalItems}</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  disabled={!hasPrevPage}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Prev
+                </button>
+                {pageButtons.map((pageButton, index) =>
+                  pageButton === -1 ? (
+                    <span key={`ellipsis-${index}`} className="px-3 py-1 text-sm text-slate-500">...
+                    </span>
+                  ) : (
                     <button
+                      key={pageButton}
                       type="button"
-                      onClick={() => toggleStatusMutation.mutate(item.id)}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700"
+                      onClick={() => setPage(pageButton)}
+                      disabled={pageButton === currentPage}
+                      className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
+                        pageButton === currentPage
+                          ? "border-indigo-600 bg-indigo-600 text-white"
+                          : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                      } disabled:cursor-not-allowed disabled:opacity-70`}
                     >
-                      {item.is_active === false ? "Activate" : "Deactivate"}
+                      {pageButton}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (window.confirm(`Delete "${item.name}"?`)) {
-                          deleteMutation.mutate(item.id);
-                        }
-                      }}
-                      className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-600"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+                  ),
+                )}
+                <button
+                  disabled={!hasNextPage}
+                  onClick={() => setPage((prev) => prev + 1)}
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </div>
 

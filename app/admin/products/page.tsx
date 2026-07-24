@@ -299,6 +299,7 @@ export default function AdminProductsPage() {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const res = await api.get("/category", {
+        params: { page: 1, size: 1000 },
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       return res.data;
@@ -313,7 +314,7 @@ export default function AdminProductsPage() {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const res = await api.get("/subcategory", {
-        params: { category_id: selectedCategoryId, is_active: true },
+        params: { page: 1, size: 1000, category_id: selectedCategoryId, is_active: true },
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       return res.data;
@@ -331,7 +332,7 @@ export default function AdminProductsPage() {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const res = await api.get("/sub-subcategory", {
-        params: { sub_category_id: selectedSubCategoryId, is_active: true },
+        params: { page: 1, size: 1000, sub_category_id: selectedSubCategoryId, is_active: true },
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       return res.data;
@@ -1806,5 +1807,8 @@ export default function AdminProductsPage() {
     </div>
   );
 }
+
+
+
 
 

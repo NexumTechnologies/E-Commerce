@@ -163,6 +163,7 @@ export default function BuyerProductsPage() {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const res = await api.get("/category", {
+        params: { page: 1, size: 1000 },
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -177,7 +178,7 @@ export default function BuyerProductsPage() {
     enabled: selectedCategoryId.length > 0,
     queryFn: async () => {
       const res = await api.get("/subcategory", {
-        params: { category_id: selectedCategoryId, is_active: true },
+        params: { page: 1, size: 1000, category_id: selectedCategoryId, is_active: true },
       });
       return res.data;
     },
@@ -196,7 +197,7 @@ export default function BuyerProductsPage() {
     enabled: selectedSubCategoryId.length > 0,
     queryFn: async () => {
       const res = await api.get("/sub-subcategory", {
-        params: { sub_category_id: selectedSubCategoryId, is_active: true },
+        params: { page: 1, size: 1000, sub_category_id: selectedSubCategoryId, is_active: true },
       });
       return res.data;
     },
@@ -731,378 +732,360 @@ export default function BuyerProductsPage() {
 
       {isModalOpen && (
         <ScreenModal open={isModalOpen}>
-        <div className="app-modal-overlay">
-          <div className="app-modal-panel flex max-w-xl flex-col">
-            <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
-              <div>
-                <h2 className="text-base font-semibold text-slate-900">
-                  {formMode === "create" ? "Add product" : "Edit product"}
+          <div className="app-modal-overlay">
+            <div className="app-modal-panel flex max-w-lg flex-col">
+              <div className="border-b px-6 py-4">
+                <h2 className="text-xl font-semibold text-slate-900">
+                  {formMode === "create" ? "Add New Product" : "Edit Product"}
                 </h2>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  {formMode === "create"
-                    ? "Fill in the details to create a product."
-                    : "Update your product details."}
-                </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+
+              <form
+                className="flex min-h-0 flex-1 flex-col"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!isFormReady) return;
+                  if (formMode === "edit") {
+                    updateMutation.mutate();
+                  } else {
+                    createMutation.mutate();
+                  }
+                }}
               >
-                ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¢
-              </button>
-            </div>
-
-            <div className="app-modal-scroll px-5 py-4">
-            <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
-              <div>
-                <label className="text-xs font-semibold text-slate-600">
-                  Category
-                </label>
-                <select
-                  value={form.category_id}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      category_id: e.target.value,
-                      sub_category_id: "",
-                      sub_sub_category_id: "",
-                    }))
-                  }
-                  className="mt-1 w-full border rounded px-3 py-2"
-                >
-                  <option value="">Select category</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-600">
-                  Name
-                </label>
-                <input
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, name: e.target.value }))
-                  }
-                  className="mt-1 w-full border rounded px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-600">
-                  Subcategory
-                </label>
-                <select
-                  value={form.sub_category_id}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      sub_category_id: e.target.value,
-                      sub_sub_category_id: "",
-                    }))
-                  }
-                  disabled={!selectedCategoryId || subCategories.length === 0}
-                  className="mt-1 w-full border rounded px-3 py-2"
-                >
-                  <option value="">
-                    {!selectedCategoryId
-                      ? "Select category first"
-                      : subCategories.length === 0
-                        ? "No subcategories"
-                        : "Select subcategory"}
-                  </option>
-                  {subCategories.map((sub: ProductSubCategory & { id: number }) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-600">
-                  Sub-sub-category
-                </label>
-                <select
-                  value={form.sub_sub_category_id}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, sub_sub_category_id: e.target.value }))
-                  }
-                  disabled={!selectedSubCategoryId || subSubCategories.length === 0}
-                  className="mt-1 w-full border rounded px-3 py-2"
-                >
-                  <option value="">
-                    {!selectedSubCategoryId
-                      ? "Select subcategory first"
-                      : subSubCategories.length === 0
-                        ? "No sub-sub-categories"
-                        : "Select sub-sub-category"}
-                  </option>
-                  {subSubCategories.map((subSub: ProductSubSubCategory & { id: number }) => (
-                    <option key={subSub.id} value={subSub.id}>
-                      {subSub.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-600">
-                  Quantity
-                </label>
-                <input
-                  type="number"
-                  value={form.quantity}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, quantity: e.target.value }))
-                  }
-                  className="mt-1 w-full border rounded px-3 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-600">
-                  Minimum order quantity
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  value={form.min_order_quantity}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      min_order_quantity: e.target.value,
-                    }))
-                  }
-                  className="mt-1 w-full border rounded px-3 py-2"
-                />
-                <p className="mt-1 text-[11px] text-slate-500">
-                  Buyers canÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢t purchase below this quantity.
-                </p>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-600">
-                  Colors
-                </label>
-                <input
-                  type="text"
-                  value={form.colors}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, colors: e.target.value }))
-                  }
-                  className="mt-1 w-full border rounded px-3 py-2"
-                  placeholder="Red, Blue, Black"
-                />
-                <p className="mt-1 text-[11px] text-slate-500">
-                  Optional. Comma separated.
-                </p>
-              </div>
-              <div className="md:col-span-2">
-                <SizeVariantsEditor
-                  variants={sizeVariants}
-                  onChange={setSizeVariants}
-                  allowedOptions={variantTypeMeta.options}
-                  title={variantTypeMeta.title}
-                  optionLabel={variantTypeMeta.label}
-                  helperText={variantTypeMeta.helperText}
-                  addButtonText={variantTypeMeta.addButtonText}
-                  placeholder={variantTypeMeta.placeholder}
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-xs font-semibold text-slate-600">
-                  Description
-                </label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, description: e.target.value }))
-                  }
-                  className="mt-1 w-full border rounded px-3 py-2 min-h-22.5"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <div className="mt-2 border-t pt-4 space-y-3">
-                  <p className="text-sm font-semibold text-slate-800">
-                    Product Images
-                  </p>
-
-                  <div className="space-y-2">
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      Choose image files
+                <div className="app-modal-scroll space-y-4 px-6 py-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Category
                     </label>
-                    <div className="flex items-center gap-3">
-                      <label
-                        htmlFor="product-images"
-                        aria-disabled={uploading}
-                        className={`inline-flex items-center px-3 py-1.5 rounded-md border text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 cursor-pointer ${
-                          uploading ? "pointer-events-none opacity-60" : ""
-                        }`}
-                      >
-                        Choose images
-                      </label>
-                      <span className="text-[11px] text-slate-500">
-                        JPG, PNG etc. You can select multiple files.
-                      </span>
-                    </div>
-                    <input
-                      id="product-images"
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const files = e.target.files;
-                        if (!files || files.length === 0) return;
-
-                        const formData = new FormData();
-                        Array.from(files).forEach((file) =>
-                          formData.append("images", file),
-                        );
-
-                        try {
-                          setUploading(true);
-                          const res = await api.post(
-                            "/upload/multiple",
-                            formData,
-                            {
-                              headers: {
-                                "Content-Type": "multipart/form-data",
-                              },
-                            },
-                          );
-                          const urls =
-                            res.data?.urls || res.data?.url || res.data || [];
-                          const newUrls = Array.isArray(urls) ? urls : [urls];
-                          setUploadedUrls((prev) => {
-                            const next = [...prev, ...newUrls];
-                            setForm((f) => ({
-                              ...f,
-                              image_urls: next.join(", "),
-                            }));
-                            return next;
-                          });
-                        } catch (err) {
-                          console.error("Image upload failed", err);
-                          setUploadedUrls([]);
-                          setForm((f) => ({ ...f, image_urls: "" }));
-                        } finally {
-                          setUploading(false);
-                        }
-                      }}
-                    />
-                    {uploading && (
-                      <div className="mt-2 inline-flex items-center gap-2 rounded-md border bg-slate-50 px-3 py-2">
-                        <span
-                          className="h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700"
-                          aria-hidden="true"
-                        />
-                        <p className="text-xs text-slate-600">
-                          Uploading images...
-                        </p>
-                      </div>
-                    )}
-                    {uploadedUrls.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        <p className="text-xs text-green-600">
-                          {uploadedUrls.length} image(s) uploaded. Click ÃƒÆ’Ã¢â‚¬â€ to
-                          remove.
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {uploadedUrls.map((url) => (
-                            <div
-                              key={url}
-                              className="relative w-16 h-16 border rounded overflow-hidden bg-slate-50"
-                            >
-                              <button
-                                type="button"
-                                className="absolute -top-1 -right-1 bg-white text-xs rounded-full border px-1 leading-none shadow"
-                                onClick={() =>
-                                  setUploadedUrls((prev) => {
-                                    const next = prev.filter((u) => u !== url);
-                                    setForm((f) => ({
-                                      ...f,
-                                      image_urls: next.join(", "),
-                                    }));
-                                    return next;
-                                  })
-                                }
-                              >
-                                ÃƒÆ’Ã¢â‚¬â€
-                              </button>
-                              <img
-                                src={url}
-                                alt="Product"
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <select
+                      className="w-full border rounded px-3 py-2 text-sm"
+                      value={form.category_id}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          category_id: e.target.value,
+                          sub_category_id: "",
+                          sub_sub_category_id: "",
+                        })
+                      }
+                      required
+                    >
+                      <option value="">Select a category</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  {/* <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      Or paste image URLs (comma separated)
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Subcategory
+                    </label>
+                    <select
+                      className="w-full border rounded px-3 py-2 text-sm"
+                      value={form.sub_category_id}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          sub_category_id: e.target.value,
+                          sub_sub_category_id: "",
+                        })
+                      }
+                      disabled={!selectedCategoryId || subCategories.length === 0}
+                    >
+                      <option value="">
+                        {!selectedCategoryId
+                          ? "Select a category first"
+                          : subCategories.length === 0
+                            ? "No subcategories"
+                            : "Select a subcategory"}
+                      </option>
+                      {subCategories.map((sub: ProductSubCategory & { id: number }) => (
+                        <option key={sub.id} value={sub.id}>
+                          {sub.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Sub-sub-category
+                    </label>
+                    <select
+                      className="w-full border rounded px-3 py-2 text-sm"
+                      value={form.sub_sub_category_id}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          sub_sub_category_id: e.target.value,
+                        })
+                      }
+                      disabled={!selectedSubCategoryId || subSubCategories.length === 0}
+                    >
+                      <option value="">
+                        {!selectedSubCategoryId
+                          ? "Select a subcategory first"
+                          : subSubCategories.length === 0
+                            ? "No sub-sub-categories"
+                            : "Select a sub-sub-category"}
+                      </option>
+                      {subSubCategories.map((subSub: ProductSubSubCategory & { id: number }) => (
+                        <option key={subSub.id} value={subSub.id}>
+                          {subSub.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Name
                     </label>
                     <input
                       type="text"
                       className="w-full border rounded px-3 py-2 text-sm"
-                      placeholder="https://... , https://..."
-                      value={form.image_urls}
+                      value={form.name}
                       onChange={(e) =>
-                        setForm({ ...form, image_urls: e.target.value })
+                        setForm({ ...form, name: e.target.value })
                       }
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      className="w-full border rounded px-3 py-2 text-sm min-h-20"
+                      value={form.description}
+                      onChange={(e) =>
+                        setForm({ ...form, description: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Quantity
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full border rounded px-3 py-2 text-sm"
+                        value={form.quantity}
+                        onChange={(e) =>
+                          setForm({ ...form, quantity: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Colors
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border rounded px-3 py-2 text-sm"
+                        placeholder="Red, Blue, Black"
+                        value={form.colors}
+                        onChange={(e) =>
+                          setForm({ ...form, colors: e.target.value })
+                        }
+                      />
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        Optional. Comma separated.
+                      </p>
+                    </div>
+                  </div>
+
+                  <SizeVariantsEditor
+                    variants={sizeVariants}
+                    onChange={setSizeVariants}
+                    allowedOptions={variantTypeMeta.options}
+                    title={variantTypeMeta.title}
+                    optionLabel={variantTypeMeta.label}
+                    helperText={variantTypeMeta.helperText}
+                    addButtonText={variantTypeMeta.addButtonText}
+                    placeholder={variantTypeMeta.placeholder}
+                  />
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Minimum order quantity
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      className="w-full border rounded px-3 py-2 text-sm"
+                      value={form.min_order_quantity}
+                      onChange={(e) =>
+                        setForm({ ...form, min_order_quantity: e.target.value })
+                      }
+                      required
                     />
                     <p className="mt-1 text-[11px] text-slate-500">
-                      If you upload files, those URLs will be used; otherwise,
-                      we will use the URLs you paste here.
+                      Buyers can&apos;t purchase below this quantity.
                     </p>
-                  </div> */}
+                  </div>
+
+                  <div className="mt-4 border-t pt-4 space-y-3">
+                    <p className="text-sm font-semibold text-slate-800">
+                      Product Images
+                    </p>
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Choose image files
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <label
+                          htmlFor="buyer-product-images"
+                          aria-disabled={uploading}
+                          className={`inline-flex items-center px-3 py-1.5 rounded-md border text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 cursor-pointer ${
+                            uploading ? "pointer-events-none opacity-60" : ""
+                          }`}
+                        >
+                          Choose images
+                        </label>
+                        <span className="text-[11px] text-slate-500">
+                          JPG, PNG etc. You can select multiple files.
+                        </span>
+                      </div>
+                      <input
+                        id="buyer-product-images"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const files = e.target.files;
+                          if (!files || files.length === 0) return;
+
+                          const formData = new FormData();
+                          Array.from(files).forEach((file) =>
+                            formData.append("images", file),
+                          );
+
+                          try {
+                            setUploading(true);
+                            const res = await api.post(
+                              "/upload/multiple",
+                              formData,
+                              {
+                                headers: {
+                                  "Content-Type": "multipart/form-data",
+                                },
+                              },
+                            );
+                            const urls =
+                              res.data?.urls || res.data?.url || res.data || [];
+                            const newUrls = Array.isArray(urls) ? urls : [urls];
+                            setUploadedUrls((prev) => {
+                              const next = [...prev, ...newUrls];
+                              setForm((f) => ({
+                                ...f,
+                                image_urls: next.join(", "),
+                              }));
+                              return next;
+                            });
+                          } catch (err) {
+                            console.error("Image upload failed", err);
+                            setUploadedUrls([]);
+                            setForm((f) => ({ ...f, image_urls: "" }));
+                          } finally {
+                            setUploading(false);
+                          }
+                        }}
+                      />
+                      {uploading && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          Uploading images...
+                        </p>
+                      )}
+                      {uploadedUrls.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          <p className="text-xs text-green-600">
+                            {uploadedUrls.length} image(s) uploaded. Click x to remove.
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {uploadedUrls.map((url) => (
+                              <div
+                                key={url}
+                                className="relative w-16 h-16 border rounded overflow-hidden bg-slate-50"
+                              >
+                                <button
+                                  type="button"
+                                  className="absolute -top-1 -right-1 bg-white text-xs rounded-full border px-1 leading-none shadow"
+                                  onClick={() =>
+                                    setUploadedUrls((prev) => {
+                                      const next = prev.filter((u) => u !== url);
+                                      setForm((f) => ({
+                                        ...f,
+                                        image_urls: next.join(", "),
+                                      }));
+                                      return next;
+                                    })
+                                  }
+                                >
+                                  x
+                                </button>
+                                <img
+                                  src={url}
+                                  alt="Product"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            </div>
-
-            <div className="mt-auto flex justify-end gap-2 border-t px-5 py-4">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="inline-flex items-center rounded-md border px-4 py-2 text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={
-                  uploading ||
-                  createMutation.isPending ||
-                  updateMutation.isPending ||
-                  !isFormReady
-                }
-                onClick={() => {
-                  if (formMode === "create") createMutation.mutate();
-                  else updateMutation.mutate();
-                }}
-                className="inline-flex items-center rounded-md bg-blue px-4 py-2 text-white text-sm disabled:opacity-60"
-              >
-                {formMode === "create"
-                  ? createMutation.isPending
-                    ? "Posting..."
-                    : "Post product"
-                  : updateMutation.isPending
-                    ? "Saving..."
-                    : "Save"}
-              </button>
+                <div className="flex items-center justify-end gap-2 border-t px-6 py-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 border rounded-md text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-60"
+                    disabled={
+                      !isFormReady ||
+                      createMutation.isPending ||
+                      updateMutation.isPending ||
+                      uploading
+                    }
+                  >
+                    {createMutation.isPending || updateMutation.isPending
+                      ? "Saving..."
+                      : formMode === "edit"
+                        ? "Update Product"
+                        : "Save Product"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        </div>
         </ScreenModal>
       )}
     </div>
   );
 }
+
+
+
+
+

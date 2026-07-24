@@ -217,6 +217,7 @@ export default function SellerProductsPage() {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const res = await api.get("/category", {
+        params: { page: 1, size: 1000 },
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -235,7 +236,7 @@ export default function SellerProductsPage() {
     enabled: selectedCategoryId.length > 0,
     queryFn: async () => {
       const res = await api.get("/subcategory", {
-        params: { category_id: selectedCategoryId, is_active: true },
+        params: { page: 1, size: 1000, category_id: selectedCategoryId, is_active: true },
       });
       return res.data;
     },
@@ -257,7 +258,7 @@ export default function SellerProductsPage() {
     enabled: selectedSubCategoryId.length > 0,
     queryFn: async () => {
       const res = await api.get("/sub-subcategory", {
-        params: { sub_category_id: selectedSubCategoryId, is_active: true },
+        params: { page: 1, size: 1000, sub_category_id: selectedSubCategoryId, is_active: true },
       });
       return res.data;
     },
@@ -1249,3 +1250,6 @@ export default function SellerProductsPage() {
     </div>
   );
 }
+
+
+
