@@ -15,8 +15,8 @@ function BrowsePageBody() {
     return (
       <>
         <BrowseBanner categoryName="Subcategories" />
-        <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <main className="max-w-[1400px] mx-auto overflow-x-hidden px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+          <div className="flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-12">
             <Suspense fallback={<div className="w-full lg:w-72">Loading filters...</div>}>
               <BrowseSidebar />
             </Suspense>
@@ -30,8 +30,8 @@ function BrowsePageBody() {
   return (
     <>
       <BrowseBanner />
-      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+      <main className="max-w-[1400px] mx-auto overflow-x-hidden px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        <div className="flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-12">
           <Suspense fallback={<div className="w-full lg:w-72">Loading filters...</div>}>
             <BrowseSidebar />
           </Suspense>
@@ -53,3 +53,4 @@ export default function BrowsePage() {
     </div>
   );
 }
+

@@ -151,9 +151,9 @@ export default function BrowseCategoryLanding({
   }, [categoryId, sortBy]);
 
   return (
-    <div className="space-y-6" dir={dir}>
+    <div className="min-w-0 flex-1 space-y-6" dir={dir}>
       <section className="rounded-[2rem] border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-orange">
               Subcategories
@@ -218,7 +218,7 @@ export default function BrowseCategoryLanding({
           )}
         </p>
 
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">{t("browse.sortBy")}</span>
             <DropdownMenu>
@@ -333,3 +333,4 @@ export default function BrowseCategoryLanding({
     </div>
   );
 }
+

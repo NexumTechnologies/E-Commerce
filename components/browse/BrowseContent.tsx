@@ -215,7 +215,7 @@ export default function BrowseContent() {
   }, [categoryId, subCategoryId, subSubCategoryId, minPriceParam, maxPriceParam, sortBy]);
 
   return (
-    <div className="flex-1" dir={dir}>
+    <div className="min-w-0 flex-1" dir={dir}>
       {/* Top Bar */}
       <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -238,7 +238,7 @@ export default function BrowseContent() {
           </p>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           {/* Sorting */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">{t("browse.sortBy")}</span>
@@ -359,3 +359,4 @@ export default function BrowseContent() {
     </div>
   );
 }
+
