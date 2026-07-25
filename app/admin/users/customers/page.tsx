@@ -23,6 +23,11 @@ type UsersResponse = {
     items?: CustomerRow[];
     pagination?: {
       totalItems?: number;
+      totalPages?: number;
+      currentPage?: number;
+      hasNextPage?: boolean;
+      hasPrevPage?: boolean;
+      pageSize?: number;
     };
   };
 };

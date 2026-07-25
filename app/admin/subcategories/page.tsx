@@ -40,8 +40,6 @@ type PaginatedResponse<T> = {
   };
 };
 
-//========================= API CALLS ==========================//
-//==============================================================//
 async function fetchCategories() {
   const res = await api.get("/category", { params: { page: 1, size: 1000 } });
   if (Array.isArray(res.data?.data?.items)) return res.data.data.items;
@@ -90,10 +88,10 @@ export default function AdminSubCategoriesPage() {
   const end = totalItems === 0 ? 0 : start + subCategories.length - 1;
 
   const createMutation = useMutation({
-    mutationFn: async (payload: typeof form) => {
+    mutationFn: async (payloadValue: typeof form) => {
       const res = await api.post("/subcategory", {
-        ...payload,
-        category_id: Number(payload.category_id),
+        ...payloadValue,
+        category_id: Number(payloadValue.category_id),
       });
       return res.data;
     },
@@ -101,10 +99,10 @@ export default function AdminSubCategoriesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, payload }: { id: number; payload: typeof form }) => {
+    mutationFn: async ({ id, payloadValue }: { id: number; payloadValue: typeof form }) => {
       const res = await api.put(`/subcategory/${id}`, {
-        ...payload,
-        category_id: Number(payload.category_id),
+        ...payloadValue,
+        category_id: Number(payloadValue.category_id),
       });
       return res.data;
     },
@@ -167,9 +165,7 @@ export default function AdminSubCategoriesPage() {
       <header className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Subcategories</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage subcategories under each category.
-          </p>
+          <p className="mt-1 text-sm text-gray-500">Manage subcategories under each category.</p>
         </div>
 
         <button
@@ -234,7 +230,11 @@ export default function AdminSubCategoriesPage() {
                                 .toUpperCase()}
                             </span>
                             <span
-                              className={ounded-full px-2 py-0.5 text-[11px] }
+                              className={`rounded-full px-2 py-0.5 text-[11px] ${
+                                subCategory.is_active === false
+                                  ? "bg-rose-50 text-rose-700"
+                                  : "bg-emerald-50 text-emerald-700"
+                              }`}
                             >
                               {subCategory.is_active === false ? "Inactive" : "Active"}
                             </span>
@@ -246,6 +246,49 @@ export default function AdminSubCategoriesPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditing(subCategory);
+                            setModalOpen(true);
+                          }}
+                          className="rounded border px-3 py-2 text-sm"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleStatusMutation.mutate(subCategory.id)}
+                          className="rounded border px-3 py-2 text-sm"
+                        >
+                          {subCategory.is_active === false ? "Activate" : "Deactivate"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Delete this subcategory?")) {
+                              deleteMutation.mutate(subCategory.id);
+                            }
+                          }}
+                          className="rounded border border-rose-200 px-3 py-2 text-sm text-rose-600"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3 border-t bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm text-gray-600">Total: {totalItems}</div>
+              <CompactPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </div>
           </>
         )}
       </div>
@@ -254,9 +297,7 @@ export default function AdminSubCategoriesPage() {
         <div className="app-modal-overlay">
           <div className="app-modal-panel z-10 flex max-h-[calc(100dvh-2rem)] max-w-2xl flex-col">
             <div className="flex items-center justify-between border-b px-6 py-4">
-              <h3 className="text-lg font-semibold">
-                {editing ? "Edit Subcategory" : "Add Subcategory"}
-              </h3>
+              <h3 className="text-lg font-semibold">{editing ? "Edit Subcategory" : "Add Subcategory"}</h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
@@ -395,7 +436,7 @@ export default function AdminSubCategoriesPage() {
                   }
                   onClick={async () => {
                     try {
-                      const payload = {
+                      const payloadValue = {
                         name: form.name.trim(),
                         description: form.description.trim(),
                         category_id: form.category_id,
@@ -404,9 +445,9 @@ export default function AdminSubCategoriesPage() {
                       };
 
                       if (editing) {
-                        await updateMutation.mutateAsync({ id: editing.id, payload });
+                        await updateMutation.mutateAsync({ id: editing.id, payloadValue });
                       } else {
-                        await createMutation.mutateAsync(payload);
+                        await createMutation.mutateAsync(payloadValue);
                       }
 
                       setModalOpen(false);
@@ -437,9 +478,3 @@ export default function AdminSubCategoriesPage() {
     </div>
   );
 }
-
-
-
-
-
-

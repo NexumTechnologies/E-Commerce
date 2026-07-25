@@ -40,7 +40,9 @@ const CATEGORY_ICONS = [Shirt, Monitor, Shield, Sparkles, Gem, Home, Footprints]
 //========================= API CALLS ==========================//
 //==============================================================//
 async function fetchBrowseCategories(): Promise<Category[]> {
-  const res = await api.get("/category");
+  const res = await api.get("/category", {
+    params: { page: 1, size: 1000 },
+  });
   const data = res.data;
 
   const raw =
@@ -107,6 +109,10 @@ export default function BrowseSidebar() {
   const selectedSubSubCategory = subSubCategoryParam;
   const [minPrice, setMinPrice] = useState<string>(minPriceParam || "");
   const [maxPrice, setMaxPrice] = useState<string>(maxPriceParam || "");
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [isSubCategoriesOpen, setIsSubCategoriesOpen] = useState(false);
+  const [isSubSubCategoriesOpen, setIsSubSubCategoriesOpen] = useState(false);
+  const [isPriceOpen, setIsPriceOpen] = useState(false);
 
   const { data: categories = [], isLoading } = useQuery({
     // Reuse the same key as home categories to share cache
@@ -130,6 +136,15 @@ export default function BrowseSidebar() {
     setMinPrice(minPriceParam || "");
     setMaxPrice(maxPriceParam || "");
   }, [minPriceParam, maxPriceParam]);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      setIsSubCategoriesOpen(true);
+    }
+    if (selectedSubCategory) {
+      setIsSubSubCategoriesOpen(true);
+    }
+  }, [selectedCategory, selectedSubCategory]);
 
   const handleCategoryClick = (id: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -195,16 +210,51 @@ export default function BrowseSidebar() {
     router.push(`/browse?${params.toString()}`);
   };
 
+  const selectedCategoryName =
+    categories.find((category) => category.id === selectedCategory)?.name ||
+    (t("All Product") || "All products");
+  const selectedSubCategoryName =
+    subCategories.find((subCategory) => subCategory.id === selectedSubCategory)?.name ||
+    "All in this category";
+  const selectedSubSubCategoryName =
+    subSubCategories.find((subSubCategory) => subSubCategory.id === selectedSubSubCategory)?.name ||
+    "All in this subcategory";
+  const priceSummary =
+    minPrice || maxPrice
+      ? `${minPrice || "0"} - ${maxPrice || "Any"}`
+      : t("browse.priceRange");
+
   return (
     <aside className="w-full shrink-0 lg:w-72 space-y-8" dir={dir}>
       {/* Categories */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <div className="flex items-center gap-2 mb-6">
+        <button
+          type="button"
+          onClick={() => setIsCategoriesOpen((open) => !open)}
+          className="flex w-full items-center justify-between text-left lg:hidden"
+        >
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-orange" />
+              <h2 className="font-bold text-gray-900">{t("browse.categories")}</h2>
+            </div>
+            <p className="mt-1 truncate text-sm text-gray-500">{selectedCategoryName}</p>
+          </div>
+          <ChevronRight
+            className={`h-5 w-5 text-gray-400 transition-transform ${isCategoriesOpen ? "rotate-90" : ""}`}
+          />
+        </button>
+
+        <div className="hidden items-center gap-2 mb-6 lg:flex">
           <Filter className="h-5 w-5 text-orange" />
           <h2 className="font-bold text-gray-900">{t("browse.categories")}</h2>
         </div>
 
-        <nav className="space-y-1">
+        <nav
+          className={`space-y-1 ${
+            isCategoriesOpen ? "mt-4 block" : "hidden"
+          } max-h-[60vh] overflow-y-auto pr-1 lg:mt-0 lg:block lg:max-h-[38.5rem] lg:pr-2`}
+        >
           {/* All products option */}
           <button
             onClick={() => handleCategoryClick("")}
@@ -252,12 +302,29 @@ export default function BrowseSidebar() {
 
       {selectedCategory && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-2 mb-6">
+          <button
+            type="button"
+            onClick={() => setIsSubCategoriesOpen((open) => !open)}
+            className="flex w-full items-center justify-between text-left lg:hidden"
+          >
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <ChevronRight className="h-5 w-5 text-orange" />
+                <h2 className="font-bold text-gray-900">Subcategories</h2>
+              </div>
+              <p className="mt-1 truncate text-sm text-gray-500">{selectedSubCategoryName}</p>
+            </div>
+            <ChevronRight
+              className={`h-5 w-5 text-gray-400 transition-transform ${isSubCategoriesOpen ? "rotate-90" : ""}`}
+            />
+          </button>
+
+          <div className="hidden items-center gap-2 mb-6 lg:flex">
             <ChevronRight className="h-5 w-5 text-orange" />
             <h2 className="font-bold text-gray-900">Subcategories</h2>
           </div>
 
-          <nav className="space-y-1">
+          <nav className={`${isSubCategoriesOpen ? "mt-4 block" : "hidden"} space-y-1 lg:mt-0 lg:block`}>
             <button
               onClick={() => handleSubCategoryClick("")}
               className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${
@@ -308,12 +375,29 @@ export default function BrowseSidebar() {
 
       {selectedSubCategory && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-2 mb-6">
+          <button
+            type="button"
+            onClick={() => setIsSubSubCategoriesOpen((open) => !open)}
+            className="flex w-full items-center justify-between text-left lg:hidden"
+          >
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <ChevronRight className="h-5 w-5 text-orange" />
+                <h2 className="font-bold text-gray-900">Sub-subcategories</h2>
+              </div>
+              <p className="mt-1 truncate text-sm text-gray-500">{selectedSubSubCategoryName}</p>
+            </div>
+            <ChevronRight
+              className={`h-5 w-5 text-gray-400 transition-transform ${isSubSubCategoriesOpen ? "rotate-90" : ""}`}
+            />
+          </button>
+
+          <div className="hidden items-center gap-2 mb-6 lg:flex">
             <ChevronRight className="h-5 w-5 text-orange" />
             <h2 className="font-bold text-gray-900">Sub-subcategories</h2>
           </div>
 
-          <nav className="space-y-1">
+          <nav className={`${isSubSubCategoriesOpen ? "mt-4 block" : "hidden"} space-y-1 lg:mt-0 lg:block`}>
             <button
               onClick={() => handleSubSubCategoryClick("")}
               className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${
@@ -365,8 +449,22 @@ export default function BrowseSidebar() {
 
       {/* Price Range */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <h2 className="font-bold text-gray-900 mb-6">{t("browse.priceRange")}</h2>
-        <div className="space-y-4">
+        <button
+          type="button"
+          onClick={() => setIsPriceOpen((open) => !open)}
+          className="flex w-full items-center justify-between text-left lg:hidden"
+        >
+          <div className="min-w-0">
+            <h2 className="font-bold text-gray-900">{t("browse.priceRange")}</h2>
+            <p className="mt-1 truncate text-sm text-gray-500">{priceSummary}</p>
+          </div>
+          <ChevronRight
+            className={`h-5 w-5 text-gray-400 transition-transform ${isPriceOpen ? "rotate-90" : ""}`}
+          />
+        </button>
+
+        <h2 className="mb-6 hidden font-bold text-gray-900 lg:block">{t("browse.priceRange")}</h2>
+        <div className={`${isPriceOpen ? "mt-4 block" : "hidden"} space-y-4 lg:mt-0 lg:block`}>
           <div className="flex items-center gap-3">
             <input 
               type="number" 

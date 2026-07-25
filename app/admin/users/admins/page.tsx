@@ -22,6 +22,11 @@ type UsersResponse = {
     items?: AdminRow[];
     pagination?: {
       totalItems?: number;
+      totalPages?: number;
+      currentPage?: number;
+      hasNextPage?: boolean;
+      hasPrevPage?: boolean;
+      pageSize?: number;
     };
   };
 };

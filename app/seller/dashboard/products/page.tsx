@@ -215,7 +215,8 @@ export default function SellerProductsPage() {
   const pagination = data?.data?.pagination;
   const totalItems = pagination?.totalItems ?? products.length;
   const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(totalItems / productsPerPage) ?? 1, 1);
-  const pageFromApi = pagination?.currentPage ?? currentPage;  const start = totalItems === 0 ? 0 : (pageFromApi - 1) * productsPerPage + 1;
+  const pageFromApi = pagination?.currentPage ?? currentPage;
+  const start = totalItems === 0 ? 0 : (pageFromApi - 1) * productsPerPage + 1;
   const end = totalItems === 0 ? 0 : start + products.length - 1;
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -615,45 +616,11 @@ export default function SellerProductsPage() {
           {totalPages > 1 && (
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-slate-600">Showing {start}-{end} of {totalItems}</div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  disabled={!hasPrevPage}
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Prev
-                </button>
-                {pageButtons.map((pageButton, index) =>
-                  pageButton === -1 ? (
-                    <span key={`seller-ellipsis-${index}`} className="px-3 py-1 text-sm text-slate-500">
-                      ...
-                    </span>
-                  ) : (
-                    <button
-                      key={pageButton}
-                      type="button"
-                      onClick={() => setCurrentPage(pageButton)}
-                      disabled={pageButton === pageFromApi}
-                      className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
-                        pageButton === pageFromApi
-                          ? "border-indigo-600 bg-indigo-600 text-white"
-                          : "border-slate-300 text-slate-700 hover:bg-slate-50"
-                      } disabled:cursor-not-allowed disabled:opacity-70`}
-                    >
-                      {pageButton}
-                    </button>
-                  ),
-                )}
-                <button
-                  type="button"
-                  disabled={!hasNextPage}
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
+              <CompactPagination
+                currentPage={pageFromApi}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
         </>

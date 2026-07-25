@@ -44,8 +44,6 @@ type PaginatedResponse<T> = {
   };
 };
 
-//========================= API CALLS ==========================//
-//==============================================================//
 async function fetchCategories() {
   const res = await api.get("/category", { params: { page: 1, size: 1000 } });
   if (Array.isArray(res.data?.data?.items)) return res.data.data.items;
@@ -112,12 +110,12 @@ export default function AdminSubSubCategoriesPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (payload: typeof form) => {
+    mutationFn: async (payloadValue: typeof form) => {
       const res = await api.post("/sub-subcategory", {
-        name: payload.name,
-        description: payload.description,
-        sub_category_id: Number(payload.sub_category_id),
-        image_url: payload.image_url,
+        name: payloadValue.name,
+        description: payloadValue.description,
+        sub_category_id: Number(payloadValue.sub_category_id),
+        image_url: payloadValue.image_url,
       });
       return res.data;
     },
@@ -125,12 +123,12 @@ export default function AdminSubSubCategoriesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, payload }: { id: number; payload: typeof form }) => {
+    mutationFn: async ({ id, payloadValue }: { id: number; payloadValue: typeof form }) => {
       const res = await api.put(`/sub-subcategory/${id}`, {
-        name: payload.name,
-        description: payload.description,
-        sub_category_id: Number(payload.sub_category_id),
-        image_url: payload.image_url,
+        name: payloadValue.name,
+        description: payloadValue.description,
+        sub_category_id: Number(payloadValue.sub_category_id),
+        image_url: payloadValue.image_url,
       });
       return res.data;
     },
@@ -179,9 +177,7 @@ export default function AdminSubSubCategoriesPage() {
     setForm({
       name: editing.name || "",
       description: editing.description || "",
-      category_id: String(
-        editing.SubCategory?.category_id || editing.SubCategory?.Category?.id || "",
-      ),
+      category_id: String(editing.SubCategory?.category_id || editing.SubCategory?.Category?.id || ""),
       sub_category_id: String(editing.sub_category_id || editing.SubCategory?.id || ""),
       image_url: editing.image_url || "",
     });
@@ -192,9 +188,7 @@ export default function AdminSubSubCategoriesPage() {
       <header className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Sub-sub-categories</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage the third level under each subcategory.
-          </p>
+          <p className="mt-1 text-sm text-gray-500">Manage the third level under each subcategory.</p>
         </div>
 
         <button
@@ -253,18 +247,63 @@ export default function AdminSubSubCategoriesPage() {
                               {item.SubCategory?.name || "No subcategory"}
                             </span>
                             <span
-                              className={ounded-full px-2 py-0.5 text-[11px] }
+                              className={`rounded-full px-2 py-0.5 text-[11px] ${
+                                item.is_active === false
+                                  ? "bg-rose-50 text-rose-700"
+                                  : "bg-emerald-50 text-emerald-700"
+                              }`}
                             >
                               {item.is_active === false ? "Inactive" : "Active"}
                             </span>
                           </div>
-                          <div className="text-sm text-slate-500">
-                            {item.description || "No description"}
-                          </div>
+                          <div className="text-sm text-slate-500">{item.description || "No description"}</div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditing(item);
+                            setModalOpen(true);
+                          }}
+                          className="rounded border px-3 py-2 text-sm"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleStatusMutation.mutate(item.id)}
+                          className="rounded border px-3 py-2 text-sm"
+                        >
+                          {item.is_active === false ? "Activate" : "Deactivate"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Delete this sub-sub-category?")) {
+                              deleteMutation.mutate(item.id);
+                            }
+                          }}
+                          className="rounded border border-rose-200 px-3 py-2 text-sm text-rose-600"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3 border-t bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm text-gray-600">Total: {totalItems}</div>
+              <CompactPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </div>
           </>
         )}
       </div>
@@ -313,9 +352,7 @@ export default function AdminSubSubCategoriesPage() {
                 <label className="text-sm">Subcategory</label>
                 <select
                   value={form.sub_category_id}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, sub_category_id: e.target.value }))
-                  }
+                  onChange={(e) => setForm((prev) => ({ ...prev, sub_category_id: e.target.value }))}
                   className="w-full rounded border px-3 py-2"
                   disabled={!form.category_id.trim()}
                 >
@@ -341,9 +378,7 @@ export default function AdminSubSubCategoriesPage() {
                 <label className="text-sm">Description</label>
                 <textarea
                   value={form.description}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, description: e.target.value }))
-                  }
+                  onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                   className="min-h-24 w-full rounded border px-3 py-2"
                 />
               </div>
@@ -412,7 +447,7 @@ export default function AdminSubSubCategoriesPage() {
                   }
                   onClick={async () => {
                     try {
-                      const payload = {
+                      const payloadValue = {
                         name: form.name.trim(),
                         description: form.description.trim(),
                         category_id: form.category_id,
@@ -421,9 +456,9 @@ export default function AdminSubSubCategoriesPage() {
                       };
 
                       if (editing) {
-                        await updateMutation.mutateAsync({ id: editing.id, payload });
+                        await updateMutation.mutateAsync({ id: editing.id, payloadValue });
                       } else {
-                        await createMutation.mutateAsync(payload);
+                        await createMutation.mutateAsync(payloadValue);
                       }
 
                       setModalOpen(false);
@@ -454,9 +489,3 @@ export default function AdminSubSubCategoriesPage() {
     </div>
   );
 }
-
-
-
-
-
-

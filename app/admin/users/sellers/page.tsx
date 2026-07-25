@@ -73,17 +73,16 @@ export default function AdminSellersPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  //========================= API CALLS ==========================//
-  //==============================================================//
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin-users", "seller", page, size, debouncedSearch],
     queryFn: async () => {
-      const resp = await api.get(`/users`, {
+      const resp = await api.get("/users", {
         params: { role: "seller", page, size, search: debouncedSearch },
       });
       return resp.data;
     },
   });
+
   const payload = data as UsersResponse | undefined;
   const rawUsers = payload?.data?.items ?? [];
   const pagination = payload?.data?.pagination;
@@ -96,25 +95,24 @@ export default function AdminSellersPage() {
     }
     return true;
   });
+
   const totalItems = pagination?.totalItems ?? rawUsers.length;
-  const totalPages = pagination?.totalPages ?? Math.ceil(totalItems / size);
-  const currentPage = pagination?.currentPage ?? page;  const start = totalItems === 0 ? 0 : (currentPage - 1) * size + 1;
+  const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(totalItems / size) ?? 1, 1);
+  const currentPage = pagination?.currentPage ?? page;
+  const start = totalItems === 0 ? 0 : (currentPage - 1) * size + 1;
   const end = totalItems === 0 ? 0 : start + users.length - 1;
   const total = totalItems;
+
   return (
     <div className="space-y-6" dir={dir}>
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-            {td("adminSellers.title")}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {td("adminSellers.subtitle")}
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{td("adminSellers.title")}</h1>
+          <p className="mt-1 text-sm text-gray-500">{td("adminSellers.subtitle")}</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="hidden sm:block text-xs text-gray-500">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="hidden text-xs text-gray-500 sm:block">
             <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-3 py-1 ring-1 ring-gray-100">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               {td("adminSellers.totalSellers", { total })}
@@ -129,26 +127,56 @@ export default function AdminSellersPage() {
                 {td("adminSellers.viewApprovals")}
               </Link>
             </div>
-            <div>
-              <input
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                placeholder={td("common.searchByNameOrEmail")}
-                className="px-3 py-2 border border-gray-200 rounded-lg w-64 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300"
-              />
-            </div>
+            <input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder={td("common.searchByNameOrEmail")}
+              className="w-64 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            />
           </div>
         </div>
       </header>
 
-            <div className="p-4 bg-gray-50/60">
+      <div className="overflow-hidden rounded-lg bg-white shadow">
+        {isLoading ? (
+          <div className="p-6 text-center">{td("common.loading")}</div>
+        ) : error ? (
+          <div className="p-6 text-center text-red-600">{td("adminSellers.failed")}</div>
+        ) : (
+          <>
+            <div className="flex flex-col gap-3 border-b bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm text-gray-600">{td("common.showingRange", { start, end, total })}</div>
+              <div className="flex flex-wrap items-center gap-2">
+                {(["all", "approved", "pending", "rejected"] as const).map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => {
+                      setStatusFilter(status);
+                      setPage(1);
+                    }}
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      statusFilter === status ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {status === "all"
+                      ? td("common.all")
+                      : status === "approved"
+                        ? td("common.verified")
+                        : status === "pending"
+                          ? td("common.pending")
+                          : td("common.rejected")}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-gray-50/60 p-4">
               {users.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-500">
-                  {td("adminSellers.empty")}
-                </div>
+                <div className="py-8 text-center text-sm text-gray-500">{td("adminSellers.empty")}</div>
               ) : (
                 <ul className="space-y-3">
                   {users.map((b) => (
@@ -157,13 +185,12 @@ export default function AdminSellersPage() {
                       className="flex flex-col gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-px hover:shadow-md lg:flex-row lg:items-center lg:justify-between"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-lg font-semibold text-indigo-700 overflow-hidden">
+                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-indigo-50 text-lg font-semibold text-indigo-700">
                           {b.Seller?.profile_image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={b.Seller.profile_image}
                               alt={b.name}
-                              className="w-full h-full object-cover rounded-full"
+                              className="h-full w-full rounded-full object-cover"
                             />
                           ) : (
                             initials(b.name)
@@ -175,26 +202,22 @@ export default function AdminSellersPage() {
                           <div className="mt-1 flex flex-wrap gap-3 text-xs text-gray-500">
                             <span>
                               {td("adminSellers.products")}
-                              <span className="ml-1 font-medium text-gray-900">
-                                {b.productsCount ?? 0}
-                              </span>
+                              <span className="ml-1 font-medium text-gray-900">{b.productsCount ?? 0}</span>
                             </span>
                             <span>
                               {td("adminSellers.ordersReceived")}
-                              <span className="ml-1 font-medium text-gray-900">
-                                {b.ordersReceived ?? 0}
-                              </span>
+                              <span className="ml-1 font-medium text-gray-900">{b.ordersReceived ?? 0}</span>
                             </span>
                           </div>
                         </div>
                       </div>
 
-                        <div className="lg:flex-1 lg:px-6">
-                          <div className="text-xs text-gray-500">Approval request Date</div>
-                          <div className="mt-1 text-sm font-medium text-gray-900">
+                      <div className="lg:flex-1 lg:px-6">
+                        <div className="text-xs text-gray-500">Approval request Date</div>
+                        <div className="mt-1 text-sm font-medium text-gray-900">
                           {formatDate(b.Seller?.created_at ?? b.created_at)}
-                          </div>
                         </div>
+                      </div>
 
                       <div className="flex items-center gap-3 sm:gap-4 lg:shrink-0">
                         <div>
@@ -234,16 +257,17 @@ export default function AdminSellersPage() {
               )}
             </div>
 
-            <div className="p-4 flex flex-col gap-3 bg-white border-t border-gray-100 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-t border-gray-100 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-gray-600">{td("common.total", { total })}</div>
+              <CompactPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </div>
           </>
         )}
       </div>
     </div>
   );
 }
-
-
-
-
-
