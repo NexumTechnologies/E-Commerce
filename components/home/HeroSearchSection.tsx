@@ -55,7 +55,9 @@ const HERO_SLIDES: BannerSlide[] = [
 //========================= API CALLS ==========================//
 //==============================================================//
 async function fetchHeaderCategories(): Promise<UiCategory[]> {
-  const res = await api.get("/category");
+  const res = await api.get("/category", {
+    params: { page: 1, size: 1000 },
+  });
   const data = res.data;
 
   const raw: ApiCategory[] = data?.data?.items || data?.categories || data || [];
@@ -92,7 +94,7 @@ async function fetchHeaderCategories(): Promise<UiCategory[]> {
     return null;
   };
 
-  return raw.slice(0, 10).map((cat, index) => ({
+  return raw.map((cat, index) => ({
     id: String(cat?._id ?? cat?.id ?? index),
     name: String(cat?.name || "Category"),
     imageUrl: getImageUrl(cat?.image_url),

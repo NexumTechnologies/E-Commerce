@@ -32,12 +32,14 @@ const CATEGORY_ICONS = [Shirt, Monitor, Gem, Home, Footprints, Package, Cpu];
 //========================= API CALLS ==========================//
 //==============================================================//
 async function fetchTopCategories(): Promise<UiCategory[]> {
-  const res = await api.get("/category");
+  const res = await api.get("/category", {
+    params: { page: 1, size: 1000 },
+  });
   const data = res.data;
 
   const raw: ApiCategory[] = data?.data?.items || data?.categories || data || [];
 
-  return raw.slice(0, 10).map((cat, index) => ({
+  return raw.map((cat, index) => ({
     id: String(cat?._id ?? cat?.id ?? index),
     name: String(cat?.name || "Category"),
     Icon: CATEGORY_ICONS[index % CATEGORY_ICONS.length],
