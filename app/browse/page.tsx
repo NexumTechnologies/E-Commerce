@@ -10,8 +10,9 @@ import BrowseCategoryLanding from "@/components/browse/BrowseCategoryLanding";
 function BrowsePageBody() {
   const searchParams = useSearchParams();
   const categoryId = searchParams.get("category");
+  const subCategoryId = searchParams.get("subcategory");
 
-  if (categoryId) {
+  if (categoryId && !subCategoryId) {
     return (
       <>
         <BrowseBanner categoryName="Subcategories" />

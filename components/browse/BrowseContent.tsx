@@ -6,7 +6,7 @@ import {
   List,
   ChevronDown,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
@@ -22,6 +22,20 @@ import {
 
 const ITEMS_PER_PAGE = 12;
 
+type ProductRecord = Record<string, unknown>;
+type BrowseProductCardItem = {
+  id: string;
+  name: string;
+  image: string;
+  discountPriceAmount: number;
+  cutPrice: undefined;
+  _subCategoryId: string;
+  _subSubCategoryId: string;
+  _numericPrice: number;
+};
+
+type SortKey = "recommended" | "latest" | "priceLowToHigh" | "priceHighToLow" | "rating";
+
 //========================= API CALLS ==========================//
 //==============================================================//
 async function fetchBrowseProducts(
@@ -31,7 +45,12 @@ async function fetchBrowseProducts(
   minPriceParam: string | null,
   maxPriceParam: string | null,
   page: number,
-) {
+): Promise<{
+  items: BrowseProductCardItem[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+}> {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -42,13 +61,13 @@ async function fetchBrowseProducts(
       : "/product";
 
   const res = await api.get(endpoint, {
-    params:
-      !categoryId && !subCategoryId
-        ? {
-            page,
-            size: ITEMS_PER_PAGE,
-          }
-        : undefined,
+    params: {
+      page,
+      size: ITEMS_PER_PAGE,
+      ...(subSubCategoryId ? { sub_sub_category_id: subSubCategoryId } : {}),
+      ...(minPriceParam ? { minPrice: minPriceParam } : {}),
+      ...(maxPriceParam ? { maxPrice: maxPriceParam } : {}),
+    },
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
 
@@ -62,11 +81,8 @@ async function fetchBrowseProducts(
     data ||
     [];
 
-  const minPrice = minPriceParam ? Number(minPriceParam) : null;
-  const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
-
   // Normalize into shape expected by ProductCard
-  const normalized = items.map((product: any) => {
+  const normalized = items.map((product: ProductRecord) => {
     const image = getSafeImageFromValue(product.image_url, "/dummy-product.png");
 
     const basePrice = Number(product.price) || 0;
@@ -96,51 +112,55 @@ async function fetchBrowseProducts(
     };
   });
 
-  const filteredProducts = normalized.filter((p: any) => {
-    if (
-      subSubCategoryId &&
-      String(p._subSubCategoryId || "").trim() !== String(subSubCategoryId).trim()
-    ) {
-      return false;
-    }
-
-    const price = typeof p._numericPrice === "number" ? p._numericPrice : null;
-    if (price == null) return true;
-    if (minPrice != null && price < minPrice) return false;
-    if (maxPrice != null && price > maxPrice) return false;
-    return true;
-  });
-
-  if (!categoryId && !subCategoryId) {
-    return {
-      items: filteredProducts,
-      totalItems: pagination?.totalItems ?? filteredProducts.length,
-      totalPages:
-        pagination?.totalPages ??
-        Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)),
-      currentPage: pagination?.currentPage ?? page,
-    };
-  }
-
   return {
-    items: filteredProducts,
-    totalItems: filteredProducts.length,
-    totalPages: Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)),
-    currentPage: page,
+    items: normalized,
+    totalItems: pagination?.totalItems ?? normalized.length,
+    totalPages:
+      pagination?.totalPages ??
+      Math.max(1, Math.ceil((pagination?.totalItems ?? normalized.length) / ITEMS_PER_PAGE)),
+    currentPage: pagination?.currentPage ?? page,
   };
 }
 
 export default function BrowseContent() {
-  const { dir, locale, t } = useI18n();
   const searchParams = useSearchParams();
   const categoryId = searchParams.get("category");
   const subCategoryId = searchParams.get("subcategory");
   const subSubCategoryId = searchParams.get("subsubcategory");
   const minPriceParam = searchParams.get("minPrice");
   const maxPriceParam = searchParams.get("maxPrice");
+  const resetKey = [categoryId, subCategoryId, subSubCategoryId, minPriceParam, maxPriceParam].join(":");
 
+  return (
+    <BrowseContentResults
+      key={resetKey}
+      categoryId={categoryId}
+      subCategoryId={subCategoryId}
+      subSubCategoryId={subSubCategoryId}
+      minPriceParam={minPriceParam}
+      maxPriceParam={maxPriceParam}
+    />
+  );
+}
+
+type BrowseContentResultsProps = {
+  categoryId: string | null;
+  subCategoryId: string | null;
+  subSubCategoryId: string | null;
+  minPriceParam: string | null;
+  maxPriceParam: string | null;
+};
+
+function BrowseContentResults({
+  categoryId,
+  subCategoryId,
+  subSubCategoryId,
+  minPriceParam,
+  maxPriceParam,
+}: BrowseContentResultsProps) {
+  const { dir, t } = useI18n();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [sortBy, setSortBy] = useState(t("browse.recommended"));
+  const [sortKey, setSortKey] = useState<SortKey>("recommended");
   const [currentPage, setCurrentPage] = useState(1);
   const {
     data,
@@ -170,48 +190,36 @@ export default function BrowseContent() {
   });
 
   const products = data?.items ?? [];
+  const sortBy = t(`browse.${sortKey}` as const);
 
-  const sortedProducts = [...products].sort((left: any, right: any) => {
-    const leftPrice = Number(left?._numericPrice) || 0;
-    const rightPrice = Number(right?._numericPrice) || 0;
+  const sortedProducts = [...products].sort((left, right) => {
+    const leftPrice = Number(left._numericPrice) || 0;
+    const rightPrice = Number(right._numericPrice) || 0;
 
-    if (sortBy === t("browse.priceLowToHigh")) {
+    if (sortKey === "priceLowToHigh") {
       return leftPrice - rightPrice;
     }
 
-    if (sortBy === t("browse.priceHighToLow")) {
+    if (sortKey === "priceHighToLow") {
       return rightPrice - leftPrice;
     }
 
     return 0;
   });
 
-  const isAllProductsMode = !categoryId && !subCategoryId;
-  const totalPages = isAllProductsMode
-    ? Math.max(1, data?.totalPages ?? 1)
-    : Math.max(1, Math.ceil(sortedProducts.length / ITEMS_PER_PAGE));
-  const activePage = isAllProductsMode ? data?.currentPage ?? currentPage : currentPage;
+  const totalPages = Math.max(1, data?.totalPages ?? 1);
+  const activePage = data?.currentPage ?? currentPage;
   const startIndex = (activePage - 1) * ITEMS_PER_PAGE;
-  const currentProducts = isAllProductsMode
-    ? sortedProducts
-    : sortedProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  const totalItems = isAllProductsMode ? data?.totalItems ?? products.length : sortedProducts.length;
+  const currentProducts = sortedProducts;
+  const totalItems = data?.totalItems ?? products.length;
 
-  const sortOptions = [
-    t("browse.recommended"),
-    t("browse.latest"),
-    t("browse.priceLowToHigh"),
-    t("browse.priceHighToLow"),
-    t("browse.rating"),
+  const sortOptions: SortKey[] = [
+    "recommended",
+    "latest",
+    "priceLowToHigh",
+    "priceHighToLow",
+    "rating",
   ];
-
-  useEffect(() => {
-    setSortBy(t("browse.recommended"));
-  }, [locale, t]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [categoryId, subCategoryId, subSubCategoryId, minPriceParam, maxPriceParam, sortBy]);
 
   return (
     <div className="min-w-0 flex-1" dir={dir}>
@@ -252,17 +260,17 @@ export default function BrowseContent() {
                 align="end"
                 className="w-50 bg-white border border-gray-100 rounded-xl shadow-xl p-1 z-50"
               >
-                {sortOptions.map((option) => (
+                {sortOptions.map((optionKey) => (
                   <DropdownMenuItem
-                    key={option}
-                    onClick={() => setSortBy(option)}
+                    key={optionKey}
+                    onClick={() => setSortKey(optionKey)}
                     className={`px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
-                      sortBy === option
+                      sortKey === optionKey
                         ? "bg-blue/5 text-blue font-semibold"
                         : "text-gray-600 hover:bg-gray-50"
                     }`}
                   >
-                    {option}
+                    {t(`browse.${optionKey}` as const)}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -308,7 +316,7 @@ export default function BrowseContent() {
         )}
         {!isLoading &&
           !error &&
-          currentProducts.map((product: any) => (
+          currentProducts.map((product) => (
             <ProductCard
               key={product.id}
               {...product}
