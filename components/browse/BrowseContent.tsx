@@ -22,7 +22,24 @@ import {
 
 const ITEMS_PER_PAGE = 12;
 
-type ProductRecord = Record<string, unknown>;
+type ProductRecord = {
+  id?: string | number;
+  name?: string;
+  price?: string | number | null;
+  customer_price?: string | number | null;
+  image_url?: string | string[] | null;
+  listing?: {
+    display_price?: string | number | null;
+  } | null;
+  sub_category_id?: string | number | null;
+  sub_sub_category_id?: string | number | null;
+  SubCategory?: {
+    id?: string | number | null;
+  } | null;
+  SubSubCategory?: {
+    id?: string | number | null;
+  } | null;
+};
 type BrowseProductCardItem = {
   id: string;
   name: string;
