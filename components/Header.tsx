@@ -316,11 +316,11 @@ export default function Header() {
     enabled: debouncedSearchTerm.length > 0,
   });
 
-  const handleSearchResultClick = (productId: string) => {
+  const handleSearchResultNavigate = (productId: string) => {
     setIsSearchOpen(false);
     setSearchTerm("");
     setDebouncedSearchTerm("");
-    router.push(`/products/${productId}`);
+    window.location.href = `/products/${productId}`;
   };
 
   const profileHref = (() => {
@@ -434,7 +434,10 @@ export default function Header() {
                         <button
                           key={product.id}
                           type="button"
-                          onClick={() => handleSearchResultClick(product.id)}
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            handleSearchResultNavigate(product.id);
+                          }}
                           className="flex w-full items-center gap-4 rounded-[1.15rem] border border-transparent bg-white px-4 py-3 text-left transition-all duration-200 hover:border-[#efc9b4] hover:bg-[#fff7f1]"
                         >
                           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[linear-gradient(145deg,#fff7f1_0%,#f7f7f5_52%,#eef3f8_100%)]">
@@ -671,7 +674,10 @@ export default function Header() {
                     <button
                       key={product.id}
                       type="button"
-                      onClick={() => handleSearchResultClick(product.id)}
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        handleSearchResultNavigate(product.id);
+                      }}
                       className="flex w-full items-center gap-3 rounded-[1.15rem] border border-transparent bg-white px-3 py-3 text-left transition-all duration-200 hover:border-[#efc9b4] hover:bg-[#fff7f1]"
                     >
                       <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-[linear-gradient(145deg,#fff7f1_0%,#f7f7f5_52%,#eef3f8_100%)]">
