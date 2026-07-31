@@ -225,7 +225,10 @@ export default function BrowseSidebar() {
       : t("browse.priceRange");
 
   return (
-    <aside className="w-full shrink-0 lg:w-72 space-y-8" dir={dir}>
+    <aside
+      className="w-full shrink-0 space-y-8 lg:sticky lg:top-28 lg:w-72 lg:self-start"
+      dir={dir}
+    >
       {/* Categories */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <button

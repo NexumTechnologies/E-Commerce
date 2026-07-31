@@ -6,7 +6,7 @@ import {
   List,
   ChevronDown,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
@@ -179,6 +179,7 @@ function BrowseContentResults({
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortKey, setSortKey] = useState<SortKey>("recommended");
   const [currentPage, setCurrentPage] = useState(1);
+  const resultsTopRef = useRef<HTMLDivElement | null>(null);
   const {
     data,
     isLoading,
@@ -238,8 +239,25 @@ function BrowseContentResults({
     "rating",
   ];
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    if (resultsTopRef.current) {
+      const headerOffset = 140;
+      const top =
+        resultsTopRef.current.getBoundingClientRect().top +
+        window.scrollY -
+        headerOffset;
+
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <div className="min-w-0 flex-1" dir={dir}>
+      <div ref={resultsTopRef} />
       {/* Top Bar */}
       <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -347,7 +365,7 @@ function BrowseContentResults({
         <CompactPagination
           currentPage={activePage}
           totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          onPageChange={handlePageChange}
         />
       )}
     </div>
