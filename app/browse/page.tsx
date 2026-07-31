@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import BrowseBanner from "@/components/browse/BrowseBanner";
 import BrowseSidebar from "@/components/browse/BrowseSidebar";
@@ -11,6 +11,10 @@ function BrowsePageBody() {
   const searchParams = useSearchParams();
   const categoryId = searchParams.get("category");
   const subCategoryId = searchParams.get("subcategory");
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
 
   if (categoryId && !subCategoryId) {
     return (
