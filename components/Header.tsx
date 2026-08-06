@@ -56,7 +56,6 @@ async function searchProductsByName(search: string): Promise<SearchProduct[]> {
 
   const response = await api.get("/product/public/listed", {
     params: {
-      limit: 12,
       search: trimmedSearch,
     },
   });

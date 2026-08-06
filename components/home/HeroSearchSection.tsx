@@ -20,6 +20,7 @@ import { useI18n } from "@/components/LanguageProvider";
 type BannerSlide = {
   id: string;
   image: string;
+  mobileImage: string;
   imageAlt: string;
 };
 
@@ -43,11 +44,13 @@ const HERO_SLIDES: BannerSlide[] = [
   {
     id: "header-one",
     image: "/header (1).jpeg",
+    mobileImage: "/shoes_mobile.png",
     imageAlt: "Marketplace header banner 1",
   },
   {
     id: "header-two",
     image: "/header (2).jpeg",
+    mobileImage: "/headphone_mobile.png",
     imageAlt: "Marketplace header banner 2",
   },
 ];
@@ -197,8 +200,16 @@ export default function HeroSearchSection() {
                     alt={item.imageAlt}
                     fill
                     priority={index === 0}
-                    className="object-cover object-center"
-                    sizes="100vw"
+                    className="hidden object-cover object-center sm:block"
+                    sizes="(max-width: 639px) 0px, 100vw"
+                  />
+                  <Image
+                    src={item.mobileImage}
+                    alt={item.imageAlt}
+                    fill
+                    priority={index === 0}
+                    className="object-cover object-center sm:hidden"
+                    sizes="(max-width: 639px) 100vw, 0px"
                   />
                 </div>
               ))}

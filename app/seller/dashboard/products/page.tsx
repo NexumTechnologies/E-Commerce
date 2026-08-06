@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import CompactPagination from "@/components/browse/CompactPagination";
@@ -162,6 +162,7 @@ export default function SellerProductsPage() {
   ]);
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 9;
+  const resultsTopRef = useRef<HTMLDivElement | null>(null);
 
   const startEdit = (product: any) => {
     const imgs: string[] = Array.isArray(product?.image_url)
@@ -209,20 +210,45 @@ export default function SellerProductsPage() {
       });
       return res.data;
     },
+    placeholderData: (previousData) => previousData,
   });
 
   const products = data?.data?.items || data?.products || data || [];
   const pagination = data?.data?.pagination;
   const totalItems = pagination?.totalItems ?? products.length;
-  const totalPages = Math.max(pagination?.totalPages ?? Math.ceil(totalItems / productsPerPage) ?? 1, 1);
-  const pageFromApi = pagination?.currentPage ?? currentPage;
-  const start = totalItems === 0 ? 0 : (pageFromApi - 1) * productsPerPage + 1;
+  const totalPages = Math.max(
+    pagination?.totalPages ?? Math.ceil(totalItems / productsPerPage) ?? 1,
+    1,
+  );
+  const activePage = pagination?.currentPage ?? currentPage;
+  const start = totalItems === 0 ? 0 : (activePage - 1) * productsPerPage + 1;
   const end = totalItems === 0 ? 0 : start + products.length - 1;
+
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
+    if (!pagination?.totalPages) return;
+    if (currentPage > pagination.totalPages) {
+      setCurrentPage(Math.max(pagination.totalPages, 1));
     }
-  }, [currentPage, totalPages]);
+  }, [currentPage, pagination?.totalPages]);
+
+  const handlePageChange = (page: number) => {
+    if (page === activePage) return;
+
+    setCurrentPage(page);
+
+    if (resultsTopRef.current) {
+      const headerOffset = 140;
+      const top =
+        resultsTopRef.current.getBoundingClientRect().top +
+        window.scrollY -
+        headerOffset;
+
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: "smooth",
+      });
+    }
+  };
 
   // Load categories for the select
   const { data: categoriesData } = useQuery({
@@ -458,6 +484,7 @@ export default function SellerProductsPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
+      <div ref={resultsTopRef} />
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">My Products</h1>
@@ -617,9 +644,9 @@ export default function SellerProductsPage() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-slate-600">Showing {start}-{end} of {totalItems}</div>
               <CompactPagination
-                currentPage={pageFromApi}
+                currentPage={activePage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
               />
             </div>
           )}
